@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Цены и Прайс-лист - Надёжный дом</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary-color:#1a365d; --secondary-color:#007bff; --accent-color:#ff6b35; --transition:all 0.3s ease; }
+        .sidebar { position:fixed;top:0;left:-300px;width:300px;height:100vh;background:linear-gradient(180deg,var(--primary-color) 0%,#0d1f3d 100%);color:white;z-index:1050;transition:var(--transition);box-shadow:5px 0 25px rgba(0,0,0,0.3);overflow-y:auto; }
+        .sidebar.active { left:0; }
+        .sidebar-header { padding:30px 25px;text-align:center;background:rgba(0,0,0,0.2);border-bottom:1px solid rgba(255,255,255,0.1); }
+        .logo { font-size:1.8em;font-weight:bold;margin-bottom:10px; }
+        .logo-subtitle { opacity:0.8;font-size:0.9em; }
+        .sidebar-menu { list-style:none;padding:20px 0; }
+        .sidebar-menu li { margin:5px 15px; }
+        .sidebar-menu a { display:flex;align-items:center;padding:15px 20px;color:white;text-decoration:none;border-radius:10px;transition:var(--transition);font-weight:500; }
+        .sidebar-menu a:hover { background:rgba(255,255,255,0.1);transform:translateX(5px); }
+        .sidebar-menu a.active { background:var(--secondary-color);box-shadow:0 4px 15px rgba(0,123,255,0.4); }
+        .sidebar-menu a i { font-size:1.3em;margin-right:15px; }
+        .cart-badge { background:var(--accent-color);color:white;border-radius:50%;width:22px;height:22px;font-size:0.75em;font-weight:bold;display:inline-flex;align-items:center;justify-content:center;margin-left:auto; }
+        .overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1040;display:none; }
+        .overlay.active { display:block; }
+        .menu-toggle { position:fixed;top:20px;left:20px;z-index:1045;background:var(--secondary-color);color:white;border:none;width:50px;height:50px;border-radius:50%;font-size:1.3em;box-shadow:0 4px 15px rgba(0,0,0,0.2);transition:var(--transition);cursor:pointer; }
+        .menu-toggle:hover { background:var(--accent-color);transform:scale(1.1); }
+        .section-title { position:relative;display:inline-block; }
+        .section-title::after { content:'';display:block;width:80px;height:4px;background:var(--accent-color);margin:15px auto;border-radius:2px; }
+        .price-category { border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);margin-bottom:32px; }
+        .category-title { background:var(--primary-color);color:white;padding:18px 24px;font-size:1.15em;font-weight:700;display:flex;align-items:center;gap:12px; }
+        .cat-icon { font-size:1.3em; }
+        .price-table { margin-bottom:0; }
+        .price-table thead th { background:#f8fafc;color:var(--primary-color);font-weight:700;border-bottom:2px solid #e2e8f0;padding:12px 16px;font-size:0.9em;text-transform:uppercase;letter-spacing:0.04em; }
+        .price-table tbody tr { transition:var(--transition); }
+        .price-table tbody tr:hover { background:#f0f7ff; }
+        .price-table td { vertical-align:middle;padding:13px 16px; }
+        .price-value { font-weight:800;color:var(--accent-color);white-space:nowrap;font-size:1.05em; }
+        .unit-badge { background:#e2e8f0;color:#64748b;padding:3px 10px;border-radius:20px;font-size:0.82em;font-weight:600;white-space:nowrap; }
+        .btn-row-cart { background:var(--accent-color);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:0.82em;font-weight:700;cursor:pointer;transition:var(--transition);white-space:nowrap; }
+        .btn-row-cart:hover { background:#e05c2a;transform:translateY(-1px); }
+        .btn-row-cart.added { background:#22c55e;cursor:default; }
+        .btn-row-cart.added:hover { transform:none; }
+        .note { padding:16px 24px;background:#fff7ed;color:#9a3412;border-top:1px solid #fed7aa;font-size:0.92em; }
+        .mini-cart { position:sticky;top:20px;background:white;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.1);overflow:hidden; }
+        .mini-cart-header { background:var(--primary-color);color:white;padding:16px 20px;font-weight:800;font-size:1em;display:flex;align-items:center;gap:10px; }
+        .mini-cart-body { padding:16px;max-height:340px;overflow-y:auto; }
+        .mini-cart-empty { text-align:center;padding:30px 16px;color:#94a3b8; }
+        .mini-cart-empty .icon { font-size:2.5em;margin-bottom:8px;opacity:0.4; }
+        .mini-cart-item { display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid #f1f5f9; }
+        .mini-cart-item:last-child { border-bottom:none; }
+        .mini-item-name { font-size:0.85em;color:#334155;font-weight:500;flex:1; }
+        .mini-item-price { font-size:0.82em;color:var(--accent-color);font-weight:700;white-space:nowrap; }
+        .mini-item-del { background:none;border:none;color:#cbd5e1;cursor:pointer;padding:0 2px;font-size:0.9em;transition:color 0.2s; }
+        .mini-item-del:hover { color:#ef4444; }
+        .mini-cart-footer { padding:14px 16px;border-top:2px solid #f1f5f9; }
+        .mini-cart-count { font-size:0.88em;color:#64748b;margin-bottom:10px; }
+        .btn-goto-cart { display:block;width:100%;background:var(--accent-color);color:white;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:0.95em;text-align:center;text-decoration:none;transition:var(--transition);cursor:pointer; }
+        .btn-goto-cart:hover { background:#e05c2a;color:white;transform:translateY(-1px); }
+        .btn-clear-cart { display:block;width:100%;background:none;color:#94a3b8;border:none;font-size:0.82em;margin-top:8px;cursor:pointer;text-decoration:underline; }
+        .btn-clear-cart:hover { color:#ef4444; }
+        .toast-added { position:fixed;top:80px;right:20px;background:#22c55e;color:white;padding:12px 22px;border-radius:10px;font-weight:600;font-size:0.95em;box-shadow:0 4px 15px rgba(34,197,94,0.4);z-index:2000;opacity:0;transition:opacity 0.3s ease;pointer-events:none; }
+        .toast-added.show { opacity:1; }
+        .promo-banner { background:linear-gradient(45deg,#ff6b35,#ff8e53);color:white;padding:40px;border-radius:15px;text-align:center; }
+        .promo-button { background:white;color:var(--accent-color);padding:12px 30px;border-radius:25px;text-decoration:none;font-weight:bold;transition:var(--transition);display:inline-block; }
+        .promo-button:hover { transform:scale(1.05);box-shadow:0 5px 15px rgba(0,0,0,0.2); }
+        .back-to-top { position:fixed;bottom:30px;right:30px;width:60px;height:60px;background:var(--secondary-color);color:white;border:none;border-radius:50%;font-size:1.5em;box-shadow:0 4px 20px rgba(0,123,255,0.3);z-index:999;transition:var(--transition);opacity:0;visibility:hidden;cursor:pointer; }
+        .back-to-top.show { opacity:1;visibility:visible; }
+        .back-to-top:hover { background:var(--accent-color);transform:translateY(-5px) scale(1.1); }
+        footer { background:var(--primary-color);color:white;padding:30px 0; }
+        .social-link { display:inline-block;width:40px;height:40px;border-radius:50%;overflow:hidden;transition:var(--transition); }
+        .social-link:hover { transform:scale(1.2); }
+        .social-link img { width:100%;height:100%;object-fit:cover; }
+        @media (max-width:991px) { .mini-cart-col { display:none; } }
+    </style>
+</head>
+<body>
+<div class="toast-added" id="toastAdded">✅ Добавлено в корзину!</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">🏠 Надёжный дом</div>
+        <div class="logo-subtitle">Строим для жизни</div>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+        <li><a href="uslugi.html"><i class="fas fa-tools"></i> Услуги</a></li>
+        <li><a href="portfolio.html"><i class="fas fa-folder"></i> Портфолио</a></li>
+        <li><a href="prices.html" class="active"><i class="fas fa-money-bill-wave"></i> Цены (Прайс)</a></li>
+        <li><a href="kalkulyator.html"><i class="fas fa-calculator"></i> Конструктор проекта</a></li>
+        <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> Корзина <span class="cart-badge" id="cartBadgeMenu">0</span></a></li>
+        <li><a href="cabinet.html"><i class="fas fa-user"></i> Личный кабинет</a></li>
+        <li><a href="reviews.html"><i class="fas fa-comments"></i> Отзывы</a></li>
+        <li><a href="kontakty.html"><i class="fas fa-phone"></i> Контакты</a></li>
+    </ul>
+</div>
+<div class="overlay" id="overlay"></div>
+<button class="menu-toggle" id="menuToggle">☰</button>
+
+<div class="container-fluid px-3 px-md-5 py-4">
+    <h1 class="section-title text-center w-100 mb-3">Прайс-лист на строительные и ремонтные работы</h1>
+    <p class="text-center text-muted mb-5">Базовые расценки за единицу работы. Нажмите <strong>«В корзину»</strong> рядом с нужной позицией — менеджер сформирует итоговую смету.</p>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+
+            <!-- I. Фундамент -->
+            <div class="price-category">
+                <div class="category-title"><span class="cat-icon">🪨</span> I. Фундаментные и земляные работы</div>
+                <div class="table-responsive">
+                    <table class="table table-hover price-table">
+                        <thead><tr><th>Наименование работы</th><th>Ед. изм.</th><th>Цена от</th><th>Заказать</th></tr></thead>
+                        <tbody>
+                            <tr><td>Разработка грунта (механизированная)</td><td><span class="unit-badge">м³</span></td><td class="price-value">500 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Разработка грунта','500 ₽/м³')">🛒 В корзину</button></td></tr>
+                            <tr><td>Устройство песчано-гравийной подушки</td><td><span class="unit-badge">м³</span></td><td class="price-value">1 200 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Песчано-гравийная подушка','1 200 ₽/м³')">🛒 В корзину</button></td></tr>
+                            <tr><td>Монтаж опалубки для фундамента</td><td><span class="unit-badge">м²</span></td><td class="price-value">450 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Монтаж опалубки фундамента','450 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Вязка арматурного каркаса</td><td><span class="unit-badge">тонна</span></td><td class="price-value">25 000 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Вязка арматурного каркаса','25 000 ₽/т')">🛒 В корзину</button></td></tr>
+                            <tr><td>Устройство монолитной ж/б плиты</td><td><span class="unit-badge">м³</span></td><td class="price-value">4 500 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Монолитная ж/б плита','4 500 ₽/м³')">🛒 В корзину</button></td></tr>
+                            <tr><td>Гидроизоляция фундамента обмазочная</td><td><span class="unit-badge">м²</span></td><td class="price-value">300 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Гидроизоляция фундамента','300 ₽/м²')">🛒 В корзину</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- II. Стены -->
+            <div class="price-category">
+                <div class="category-title"><span class="cat-icon">🧱</span> II. Стены, перегородки и конструкции</div>
+                <div class="table-responsive">
+                    <table class="table table-hover price-table">
+                        <thead><tr><th>Наименование работы</th><th>Ед. изм.</th><th>Цена от</th><th>Заказать</th></tr></thead>
+                        <tbody>
+                            <tr><td>Кладка несущих стен из газобетона</td><td><span class="unit-badge">м³</span></td><td class="price-value">3 800 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Кладка стен из газобетона','3 800 ₽/м³')">🛒 В корзину</button></td></tr>
+                            <tr><td>Кладка кирпича (в 2,5 кирпича)</td><td><span class="unit-badge">м³</span></td><td class="price-value">4 500 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Кладка кирпича','4 500 ₽/м³')">🛒 В корзину</button></td></tr>
+                            <tr><td>Кладка перегородок из пазогребневых плит</td><td><span class="unit-badge">м²</span></td><td class="price-value">600 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Перегородки из ПГП','600 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Монтаж деревянного каркаса стен</td><td><span class="unit-badge">м²</span></td><td class="price-value">2 200 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Деревянный каркас стен','2 200 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Устройство монолитного армопояса</td><td><span class="unit-badge">пог. м</span></td><td class="price-value">3 500 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Монолитный армопояс','3 500 ₽/пм')">🛒 В корзину</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- III. Кровля -->
+            <div class="price-category">
+                <div class="category-title"><span class="cat-icon">🏗️</span> III. Кровельные работы и утепление</div>
+                <div class="table-responsive">
+                    <table class="table table-hover price-table">
+                        <thead><tr><th>Наименование работы</th><th>Ед. изм.</th><th>Цена от</th><th>Заказать</th></tr></thead>
+                        <tbody>
+                            <tr><td>Монтаж стропильной системы (двускатная кровля)</td><td><span class="unit-badge">м²</span></td><td class="price-value">1 300 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Стропильная система','1 300 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Укладка пароизоляции и гидроизоляции</td><td><span class="unit-badge">м²</span></td><td class="price-value">150 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Паро/гидроизоляция кровли','150 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Утепление кровли (2–3 слоя)</td><td><span class="unit-badge">м²</span></td><td class="price-value">600 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Утепление кровли','600 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Монтаж гибкой черепицы</td><td><span class="unit-badge">м²</span></td><td class="price-value">1 100 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Монтаж гибкой черепицы','1 100 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Монтаж водосточной системы (ПВХ)</td><td><span class="unit-badge">пог. м</span></td><td class="price-value">700 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Водосточная система ПВХ','700 ₽/пм')">🛒 В корзину</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- IV. Фасад -->
+            <div class="price-category">
+                <div class="category-title"><span class="cat-icon">🎨</span> IV. Фасадные и наружные работы</div>
+                <div class="table-responsive">
+                    <table class="table table-hover price-table">
+                        <thead><tr><th>Наименование работы</th><th>Ед. изм.</th><th>Цена от</th><th>Заказать</th></tr></thead>
+                        <tbody>
+                            <tr><td>Утепление фасада плитами</td><td><span class="unit-badge">м²</span></td><td class="price-value">800 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Утепление фасада','800 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Оштукатуривание фасада по сетке</td><td><span class="unit-badge">м²</span></td><td class="price-value">1 400 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Штукатурка фасада','1 400 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Монтаж сайдинга (винил/металл)</td><td><span class="unit-badge">м²</span></td><td class="price-value">950 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Монтаж сайдинга','950 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Монтаж фасадных панелей</td><td><span class="unit-badge">м²</span></td><td class="price-value">1 800 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Фасадные панели','1 800 ₽/м²')">🛒 В корзину</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- V. Инженерия -->
+            <div class="price-category">
+                <div class="category-title"><span class="cat-icon">⚡</span> V. Инженерные коммуникации</div>
+                <div class="table-responsive">
+                    <table class="table table-hover price-table">
+                        <thead><tr><th>Наименование работы</th><th>Ед. изм.</th><th>Цена от</th><th>Заказать</th></tr></thead>
+                        <tbody>
+                            <tr><td>Разводка электропроводки (точка)</td><td><span class="unit-badge">шт.</span></td><td class="price-value">800 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Электропроводка (точка)','800 ₽/шт')">🛒 В корзину</button></td></tr>
+                            <tr><td>Монтаж системы отопления (тёплый пол)</td><td><span class="unit-badge">м²</span></td><td class="price-value">750 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Тёплый пол','750 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Разводка водоснабжения и канализации</td><td><span class="unit-badge">шт.</span></td><td class="price-value">3 000 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Водоснабжение/канализация','3 000 ₽/шт')">🛒 В корзину</button></td></tr>
+                            <tr><td>Установка и подключение сантехники</td><td><span class="unit-badge">шт.</span></td><td class="price-value">2 500 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Установка сантехники','2 500 ₽/шт')">🛒 В корзину</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VI. Отделка -->
+            <div class="price-category">
+                <div class="category-title"><span class="cat-icon">🖌️</span> VI. Внутренняя отделка (чистовая)</div>
+                <div class="table-responsive">
+                    <table class="table table-hover price-table">
+                        <thead><tr><th>Наименование работы</th><th>Ед. изм.</th><th>Цена от</th><th>Заказать</th></tr></thead>
+                        <tbody>
+                            <tr><td>Выравнивание стен по маякам (штукатурка)</td><td><span class="unit-badge">м²</span></td><td class="price-value">650 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Штукатурка стен','650 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Укладка керамической плитки</td><td><span class="unit-badge">м²</span></td><td class="price-value">1 600 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Укладка плитки','1 600 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Шпаклевание и покраска стен (2 слоя)</td><td><span class="unit-badge">м²</span></td><td class="price-value">550 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Шпаклевание и покраска стен','550 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Укладка ламината / паркетной доски</td><td><span class="unit-badge">м²</span></td><td class="price-value">550 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Укладка ламината/паркета','550 ₽/м²')">🛒 В корзину</button></td></tr>
+                            <tr><td>Монтаж натяжных потолков</td><td><span class="unit-badge">м²</span></td><td class="price-value">400 ₽</td><td><button class="btn-row-cart" onclick="addToCart(this,'Натяжные потолки','400 ₽/м²')">🛒 В корзину</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="note"><i class="fas fa-info-circle me-2"></i><strong>Важно:</strong> цены указаны только за работу. Стоимость материалов, доставки и вывоза мусора рассчитывается отдельно.</div>
+            </div>
+
+            <section class="promo-banner mt-2 mb-4">
+                <h2 class="display-6 fw-bold mb-3">Хотите рассчитать стоимость всего проекта?</h2>
+                <p class="lead mb-4">Воспользуйтесь интерактивным конструктором — ориентировочная смета за 5 минут.</p>
+                <a href="kalkulyator.html" class="promo-button">Перейти к конструктору</a>
+            </section>
+        </div>
+
+        <!-- Мини-корзина -->
+        <div class="col-lg-4 mini-cart-col">
+            <div class="mini-cart">
+                <div class="mini-cart-header"><i class="fas fa-shopping-cart"></i> Ваша корзина</div>
+                <div class="mini-cart-body" id="miniCartBody">
+                    <div class="mini-cart-empty"><div class="icon">🛒</div><p>Добавьте позиции<br>из прайса</p></div>
+                </div>
+                <div class="mini-cart-footer" id="miniCartFooter" style="display:none">
+                    <div class="mini-cart-count" id="miniCartCount">0 позиций выбрано</div>
+                    <a href="cart.html" class="btn-goto-cart">Оформить заявку →</a>
+                    <button class="btn-clear-cart" onclick="clearCart()">Очистить корзину</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center">
+    <div class="container">
+        <div class="d-flex justify-content-center gap-3 mb-3">
+            <a href="https://vk.com" class="social-link"><img src="img/vk.jpg" alt="ВКонтакте"></a>
+            <a href="https://ok.ru" class="social-link"><img src="img/ok.jpg" alt="Одноклассники"></a>
+            <a href="https://t.me" class="social-link"><img src="img/tg.jpg" alt="Telegram"></a>
+        </div>
+        <p class="mb-2">🏗️ Надёжный дом — Строим для жизни</p>
+        <p class="text-white-50">© 2025 Все права защищены</p>
+    </div>
+</footer>
+<button class="back-to-top" id="backToTop">↑</button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const sidebar=document.getElementById('sidebar'),overlay=document.getElementById('overlay'),menuToggle=document.getElementById('menuToggle');
+    function toggleMenu(){sidebar.classList.toggle('active');overlay.classList.toggle('active');}
+    menuToggle.addEventListener('click',toggleMenu);overlay.addEventListener('click',toggleMenu);
+    document.querySelectorAll('.sidebar-menu a').forEach(l=>l.addEventListener('click',()=>{if(window.innerWidth<=768)toggleMenu();}));
+    const backToTop=document.getElementById('backToTop');
+    window.addEventListener('scroll',()=>backToTop.classList.toggle('show',window.pageYOffset>300));
+    backToTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+    function getCart(){return JSON.parse(localStorage.getItem('nd_cart')||'[]');}
+    function saveCart(c){localStorage.setItem('nd_cart',JSON.stringify(c));}
+
+    function addToCart(btn,name,price){
+        const cart=getCart();
+        if(!cart.find(i=>i.name===name)){cart.push({name,price,id:Date.now()});saveCart(cart);}
+        btn.textContent='✅ Добавлено';btn.classList.add('added');btn.disabled=true;
+        const t=document.getElementById('toastAdded');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);
+        updateAllUI();
+    }
+    function removeFromMiniCart(id){saveCart(getCart().filter(i=>i.id!==id));restoreButtons();updateAllUI();}
+    function clearCart(){localStorage.removeItem('nd_cart');restoreButtons();updateAllUI();}
+
+    function updateAllUI(){
+        const cart=getCart(),count=cart.length;
+        document.getElementById('cartBadgeMenu').textContent=count;
+        const body=document.getElementById('miniCartBody'),footer=document.getElementById('miniCartFooter'),countEl=document.getElementById('miniCartCount');
+        if(count===0){
+            body.innerHTML='<div class="mini-cart-empty"><div class="icon">🛒</div><p>Добавьте позиции<br>из прайса</p></div>';
+            footer.style.display='none';
+        } else {
+            body.innerHTML=cart.map(item=>`<div class="mini-cart-item"><div><div class="mini-item-name">${item.name}</div><div class="mini-item-price">${item.price}</div></div><button class="mini-item-del" onclick="removeFromMiniCart(${item.id})">✕</button></div>`).join('');
+            footer.style.display='block';
+            countEl.textContent=`${count} ${count===1?'позиция выбрана':count<5?'позиции выбрано':'позиций выбрано'}`;
+        }
+    }
+    function restoreButtons(){
+        const cart=getCart();
+        document.querySelectorAll('.btn-row-cart').forEach(btn=>{
+            const m=btn.getAttribute('onclick').match(/'([^']+)'/);
+            if(!m)return;
+            if(cart.find(i=>i.name===m[1])){btn.textContent='✅ Добавлено';btn.classList.add('added');btn.disabled=true;}
+            else{btn.innerHTML='🛒 В корзину';btn.classList.remove('added');btn.disabled=false;}
+        });
+    }
+    restoreButtons();updateAllUI();
+</script>
+</body>
+</html>

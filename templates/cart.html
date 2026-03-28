@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина заказов - Надёжный дом</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #007bff;
+            --accent-color: #ff6b35;
+            --transition: all 0.3s ease;
+        }
+
+        /* ── Боковое меню ── */
+        .sidebar {
+            position: fixed; top: 0; left: -300px;
+            width: 300px; height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #0d1f3d 100%);
+            color: white; z-index: 1050;
+            transition: var(--transition);
+            box-shadow: 5px 0 25px rgba(0,0,0,0.3); overflow-y: auto;
+        }
+        .sidebar.active { left: 0; }
+        .sidebar-header {
+            padding: 30px 25px; text-align: center;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo { font-size: 1.8em; font-weight: bold; margin-bottom: 10px; }
+        .logo-subtitle { opacity: 0.8; font-size: 0.9em; }
+        .sidebar-menu { list-style: none; padding: 20px 0; }
+        .sidebar-menu li { margin: 5px 15px; }
+        .sidebar-menu a {
+            display: flex; align-items: center;
+            padding: 15px 20px; color: white; text-decoration: none;
+            border-radius: 10px; transition: var(--transition); font-weight: 500;
+        }
+        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
+        .sidebar-menu a.active { background: var(--secondary-color); box-shadow: 0 4px 15px rgba(0,123,255,0.4); }
+        .sidebar-menu a i { font-size: 1.3em; margin-right: 15px; }
+        .cart-badge {
+            background: var(--accent-color); color: white;
+            border-radius: 50%; width: 22px; height: 22px;
+            font-size: 0.75em; font-weight: bold;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-left: auto;
+        }
+
+        .overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1040; display: none;
+        }
+        .overlay.active { display: block; }
+        .menu-toggle {
+            position: fixed; top: 20px; left: 20px; z-index: 1045;
+            background: var(--secondary-color); color: white;
+            border: none; width: 50px; height: 50px;
+            border-radius: 50%; font-size: 1.3em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: var(--transition); cursor: pointer;
+        }
+        .menu-toggle:hover { background: var(--accent-color); transform: scale(1.1); }
+
+        .section-title { position: relative; display: inline-block; }
+        .section-title::after {
+            content: ''; display: block;
+            width: 80px; height: 4px;
+            background: var(--accent-color);
+            margin: 15px auto; border-radius: 2px;
+        }
+
+        /* ── Строка товара в корзине ── */
+        .cart-item {
+            background: white; border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            margin-bottom: 16px;
+            display: flex; align-items: center;
+            gap: 16px; transition: var(--transition);
+        }
+        .cart-item:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .cart-item-icon {
+            width: 54px; height: 54px; border-radius: 12px;
+            background: linear-gradient(135deg, var(--secondary-color), #0056d6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5em; flex-shrink: 0;
+        }
+        .cart-item-info { flex: 1; }
+        .cart-item-name { font-weight: 700; color: var(--primary-color); font-size: 1.05em; }
+        .cart-item-price { color: var(--accent-color); font-weight: 600; margin-top: 4px; }
+        .btn-remove {
+            background: #fee2e2; color: #dc2626;
+            border: none; border-radius: 8px;
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: var(--transition); flex-shrink: 0;
+        }
+        .btn-remove:hover { background: #dc2626; color: white; }
+
+        /* ── Итоговая карточка ── */
+        .cart-summary {
+            background: white; border-radius: 16px;
+            padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: sticky; top: 20px;
+        }
+        .summary-title { font-weight: 800; font-size: 1.2em; color: var(--primary-color); margin-bottom: 20px; }
+        .summary-row {
+            display: flex; justify-content: space-between;
+            padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+            font-size: 0.95em;
+        }
+        .summary-row:last-of-type { border-bottom: none; }
+        .summary-row .label { color: #64748b; }
+        .summary-row .value { font-weight: 600; color: var(--primary-color); }
+        .summary-total {
+            display: flex; justify-content: space-between;
+            padding: 16px 0 0; margin-top: 8px;
+            border-top: 2px solid #e2e8f0;
+        }
+        .summary-total .label { font-weight: 700; font-size: 1.05em; }
+        .summary-total .value { font-weight: 800; font-size: 1.2em; color: var(--accent-color); }
+
+        .btn-checkout {
+            width: 100%; background: var(--accent-color); color: white;
+            border: none; border-radius: 12px;
+            padding: 16px; font-size: 1.1em; font-weight: 700;
+            margin-top: 20px; cursor: pointer; transition: var(--transition);
+        }
+        .btn-checkout:hover { background: #e05c2a; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,53,0.35); }
+        .btn-continue {
+            width: 100%; background: transparent;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+            border-radius: 12px; padding: 13px;
+            font-size: 1em; font-weight: 600;
+            margin-top: 10px; cursor: pointer; transition: var(--transition);
+            text-decoration: none; display: block; text-align: center;
+        }
+        .btn-continue:hover { background: var(--secondary-color); color: white; }
+
+        /* ── Пустая корзина ── */
+        .empty-cart {
+            text-align: center; padding: 80px 20px;
+        }
+        .empty-cart .icon { font-size: 5em; margin-bottom: 20px; opacity: 0.3; }
+        .empty-cart h3 { color: #94a3b8; margin-bottom: 12px; }
+        .empty-cart p { color: #94a3b8; margin-bottom: 30px; }
+
+        /* ── Модал успешного заказа ── */
+        .modal-success .modal-header { background: #22c55e; color: white; border: none; }
+        .modal-success .modal-title { font-weight: 800; }
+
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 60px; height: 60px;
+            background: var(--secondary-color); color: white;
+            border: none; border-radius: 50%; font-size: 1.5em;
+            box-shadow: 0 4px 20px rgba(0,123,255,0.3);
+            z-index: 999; transition: var(--transition);
+            opacity: 0; visibility: hidden; cursor: pointer;
+        }
+        .back-to-top.show { opacity: 1; visibility: visible; }
+        .back-to-top:hover { background: var(--accent-color); transform: translateY(-5px) scale(1.1); }
+
+        footer { background: var(--primary-color); color: white; padding: 30px 0; }
+        .social-link {
+            display: inline-block; width: 40px; height: 40px;
+            border-radius: 50%; overflow: hidden; transition: var(--transition);
+        }
+        .social-link:hover { transform: scale(1.2); }
+        .social-link img { width: 100%; height: 100%; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<!-- Боковое меню -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">🏠 Надёжный дом</div>
+        <div class="logo-subtitle">Строим для жизни</div>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="index.html"><i class="fas fa-home"></i> Главная</a></li>
+        <li><a href="uslugi.html"><i class="fas fa-tools"></i> Услуги</a></li>
+        <li><a href="portfolio.html"><i class="fas fa-folder"></i> Портфолио</a></li>
+        <li><a href="prices.html"><i class="fas fa-money-bill-wave"></i> Цены (Прайс)</a></li>
+        <li><a href="kalkulyator.html"><i class="fas fa-calculator"></i> Конструктор проекта</a></li>
+        <li><a href="cart.html" class="active"><i class="fas fa-shopping-cart"></i> Корзина <span class="cart-badge" id="cartBadgeMenu">0</span></a></li>
+        <li><a href="cabinet.html"><i class="fas fa-user"></i> Личный кабинет</a></li>
+        <li><a href="reviews.html"><i class="fas fa-comments"></i> Отзывы</a></li>
+        <li><a href="kontakty.html"><i class="fas fa-phone"></i> Контакты</a></li>
+    </ul>
+</div>
+<div class="overlay" id="overlay"></div>
+<button class="menu-toggle" id="menuToggle">☰</button>
+
+<!-- Основной контент -->
+<div class="container-fluid px-3 px-md-5 py-4">
+
+    <h1 class="section-title text-center w-100 mb-2">Корзина заказов</h1>
+    <p class="text-center text-muted mb-5">Выбранные услуги для оформления заявки</p>
+
+    <div class="row g-4" id="cartContent">
+        <!-- Заполняется через JS -->
+    </div>
+
+</div>
+
+<!-- Модал успешного заказа -->
+<div class="modal fade modal-success" id="orderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+            <div class="modal-header">
+                <h5 class="modal-title">✅ Заявка отправлена!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div style="font-size:3em; margin-bottom:16px;">🏗️</div>
+                <h4 class="fw-bold mb-3">Спасибо за вашу заявку!</h4>
+                <p class="text-muted">Наш менеджер свяжется с вами в течение <strong>30 минут</strong> для уточнения деталей и согласования сроков.</p>
+                <p class="text-muted small">Звонки принимаем: Пн–Пт 9:00–18:00, Сб 10:00–16:00</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <a href="index.html" class="btn btn-success px-5 py-2 rounded-pill fw-bold">На главную</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="text-center mt-4">
+    <div class="container">
+        <div class="d-flex justify-content-center gap-3 mb-3">
+            <a href="https://vk.com" class="social-link"><img src="img/vk.jpg" alt="ВКонтакте"></a>
+            <a href="https://ok.ru" class="social-link"><img src="img/ok.jpg" alt="Одноклассники"></a>
+            <a href="https://t.me" class="social-link"><img src="img/tg.jpg" alt="Telegram"></a>
+        </div>
+        <p class="mb-2">🏗️ Надёжный дом — Строим для жизни</p>
+        <p class="text-white-50">© 2025 Все права защищены</p>
+    </div>
+</footer>
+
+<button class="back-to-top" id="backToTop">↑</button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Меню ──────────────────────────────────────────────
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    const overlay = document.getElementById('overlay');
+    function toggleMenu() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+    menuToggle.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) toggleMenu();
+        });
+    });
+
+    // ── Наверх ────────────────────────────────────────────
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+        backToTop.classList.toggle('show', window.pageYOffset > 300);
+    });
+    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    // ── Корзина ───────────────────────────────────────────
+    const SERVICE_ICONS = {
+        'Строительство домов под ключ': '🏠',
+        'Капитальный ремонт': '🔨',
+        'Архитектурное проектирование': '📐',
+        'Монтаж и ремонт кровли': '🏗️',
+        'Устройство фундамента': '🪨',
+        'Электрика, сантехника, отопление': '⚡',
+        'Ландшафтный дизайн': '🌿',
+        'Снос и демонтажные работы': '🚧',
+    };
+
+    function getCart() {
+        return JSON.parse(localStorage.getItem('nd_cart') || '[]');
+    }
+    function saveCart(cart) {
+        localStorage.setItem('nd_cart', JSON.stringify(cart));
+    }
+
+    function removeItem(id) {
+        let cart = getCart();
+        cart = cart.filter(item => item.id !== id);
+        saveCart(cart);
+        renderCart();
+    }
+
+    function renderCart() {
+        const cart = getCart();
+        const container = document.getElementById('cartContent');
+        document.getElementById('cartBadgeMenu').textContent = cart.length;
+
+        if (cart.length === 0) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="empty-cart">
+                        <div class="icon">🛒</div>
+                        <h3>Корзина пуста</h3>
+                        <p>Добавьте услуги из нашего каталога</p>
+                        <a href="uslugi.html" class="btn btn-primary px-5 py-3 rounded-pill fw-bold">
+                            Перейти к услугам
+                        </a>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        // Список товаров
+        let itemsHTML = cart.map(item => `
+            <div class="cart-item" id="item-${item.id}">
+                <div class="cart-item-icon">${SERVICE_ICONS[item.name] || '🔧'}</div>
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price">${item.price}</div>
+                </div>
+                <button class="btn-remove" onclick="removeItem(${item.id})" title="Удалить">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        `).join('');
+
+        // Форма и итоги
+        const summaryHTML = `
+            <div class="cart-summary">
+                <div class="summary-title">📋 Ваш заказ</div>
+                ${cart.map(item => `
+                    <div class="summary-row">
+                        <span class="label">${item.name}</span>
+                        <span class="value">${item.price}</span>
+                    </div>
+                `).join('')}
+                <div class="summary-total">
+                    <span class="label">Итого услуг:</span>
+                    <span class="value">${cart.length} шт.</span>
+                </div>
+                <p class="text-muted small mt-3 mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Точная стоимость рассчитывается индивидуально после консультации с менеджером.
+                </p>
+
+                <hr>
+                <p class="fw-bold mb-2" style="color: var(--primary-color)">Контактные данные</p>
+                <div class="mb-3">
+                    <input type="text" class="form-control mb-2" id="orderName" placeholder="Ваше имя *" required>
+                    <input type="tel" class="form-control mb-2" id="orderPhone" placeholder="+7 (___) ___-__-__ *" required>
+                    <input type="email" class="form-control mb-2" id="orderEmail" placeholder="Email (необязательно)">
+                    <textarea class="form-control" id="orderComment" rows="2" placeholder="Комментарий к заказу"></textarea>
+                </div>
+
+                <button class="btn-checkout" onclick="submitOrder()">
+                    📨 Отправить заявку
+                </button>
+                <a href="uslugi.html" class="btn-continue">
+                    ← Продолжить выбор услуг
+                </a>
+            </div>
+        `;
+
+        container.innerHTML = `
+            <div class="col-lg-7">${itemsHTML}</div>
+            <div class="col-lg-5">${summaryHTML}</div>
+        `;
+    }
+
+    function submitOrder() {
+        const name = document.getElementById('orderName').value.trim();
+        const phone = document.getElementById('orderPhone').value.trim();
+        if (!name || !phone) {
+            alert('Пожалуйста, заполните имя и телефон.');
+            return;
+        }
+        // Очищаем корзину и показываем модал
+        localStorage.removeItem('nd_cart');
+        const modal = new bootstrap.Modal(document.getElementById('orderModal'));
+        modal.show();
+    }
+
+    // Первичная отрисовка
+    renderCart();
+</script>
+</body>
+</html>
