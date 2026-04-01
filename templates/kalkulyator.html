@@ -1,1336 +1,1118 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Конструктор проекта - Надёжный дом</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary-color: #1a365d;
-            --secondary-color: #007bff;
-            --accent-color: #ff6b35;
-            --transition: all 0.3s ease;
-        }
+{% extends "base.html" %}
+{% load static %}
 
-        /* Боковое меню */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 300px;
-            height: 100vh;
-            background: linear-gradient(180deg, var(--primary-color) 0%, #0d1f3d 100%);
-            color: white;
-            z-index: 1050;
-            transition: var(--transition);
-            box-shadow: 5px 0 25px rgba(0,0,0,0.3);
-            overflow-y: auto;
-        }
-        .sidebar.active { left: 0; }
-        .sidebar-header {
-            padding: 30px 25px;
-            text-align: center;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .logo { font-size: 1.8em; font-weight: bold; margin-bottom: 10px; }
-        .logo-subtitle { opacity: 0.8; font-size: 0.9em; }
-        .sidebar-menu { list-style: none; padding: 20px 0; }
-        .sidebar-menu li { margin: 5px 15px; }
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
-        .sidebar-menu a.active { background: var(--secondary-color); box-shadow: 0 4px 15px rgba(0,123,255,0.4); }
-        .sidebar-menu a i { font-size: 1.3em; margin-right: 15px; }
+{% block title %}Конструктор проекта — Надёжный дом{% endblock %}
+{% block active_kalk %}active{% endblock %}
 
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1040;
-            display: none;
-        }
-        .overlay.active { display: block; }
+{% block extra_css %}
+<style>
+:root {
+    --primary-color: #1a365d;
+    --secondary-color: #007bff;
+    --accent-color: #ff6b35;
+    --transition: all 0.3s ease;
+}
 
-        .menu-toggle {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1045;
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 1.3em;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: var(--transition);
-        }
-        .menu-toggle:hover { background: var(--accent-color); transform: scale(1.1); }
+/* Calculator Group */
+.calculator-group {
+    background: #f8f9fa;
+    border-radius: 15px;
+    border-left: 5px solid var(--secondary-color);
+    padding: 25px;
+    margin-bottom: 30px;
+}
 
-        .section-title {
-            position: relative;
-            display: inline-block;
-        }
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 80px;
-            height: 4px;
-            background: var(--accent-color);
-            margin: 15px auto;
-            border-radius: 2px;
-        }
+.calculator-group h3 {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.3em;
+    margin-bottom: 20px;
+}
 
-        /* Calculator Group */
-        .calculator-group {
-            background: #f8f9fa;
-            border-radius: 15px;
-            border-left: 5px solid var(--secondary-color);
-            padding: 25px;
-            margin-bottom: 30px;
-        }
+/* Option Buttons */
+.option-button {
+    padding: 20px 15px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+    transition: var(--transition);
+    position: relative;
+}
 
-        .calculator-group h3 {
-            color: var(--primary-color);
-            font-weight: 700;
-            font-size: 1.3em;
-            margin-bottom: 20px;
-        }
+.option-button:hover {
+    background: #f0f8ff;
+    border-color: var(--secondary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,123,255,0.2);
+}
 
-        /* Option Buttons */
-        .option-button {
-            padding: 20px 15px;
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 600;
-            color: #333;
-            transition: var(--transition);
-            position: relative;
-        }
+.option-button.active {
+    background: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
+    box-shadow: 0 5px 20px rgba(0,123,255,0.4);
+}
 
-        .option-button:hover {
-            background: #f0f8ff;
-            border-color: var(--secondary-color);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,123,255,0.2);
-        }
+.option-button i {
+    font-size: 2em;
+    display: block;
+    margin-bottom: 10px;
+}
 
-        .option-button.active {
-            background: var(--secondary-color);
-            color: white;
-            border-color: var(--secondary-color);
-            box-shadow: 0 5px 20px rgba(0,123,255,0.4);
-        }
+.option-price {
+    display: block;
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-top: 5px;
+}
 
-        .option-button i {
-            font-size: 2em;
-            display: block;
-            margin-bottom: 10px;
-        }
+/* Range Slider */
+.range-value {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--accent-color);
+}
 
-        .option-price {
-            display: block;
-            font-size: 0.85em;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
+.form-range {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    outline: none;
+}
 
-        /* Range Slider с заполнением */
-        .range-value {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: var(--accent-color);
-        }
+.form-range::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    background: #ddd;
+    border-radius: 5px;
+}
 
-        .form-range {
-            width: 100%;
-            height: 8px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: transparent;
-            outline: none;
-        }
+.form-range::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    background: #ddd;
+    border-radius: 5px;
+}
 
-        .form-range::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 8px;
-            background: #ddd;
-            border-radius: 5px;
-        }
+.form-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: var(--secondary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,123,255,0.5);
+    margin-top: -8px;
+}
 
-        .form-range::-moz-range-track {
-            width: 100%;
-            height: 8px;
-            background: #ddd;
-            border-radius: 5px;
-        }
+.form-range::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: var(--secondary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,123,255,0.5);
+    border: none;
+}
 
-        .form-range::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            background: var(--secondary-color);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0,123,255,0.5);
-            margin-top: -8px;
-        }
+/* Summary Panel */
+.summary-panel {
+    position: sticky;
+    top: 20px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+}
 
-        .form-range::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            background: var(--secondary-color);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0,123,255,0.5);
-            border: none;
-        }
+.total-price {
+    font-size: 2.5em;
+    font-weight: 900;
+    text-align: center;
+    margin: 20px 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
 
-        /* Контейнер для визуального прогресса */
-        .range-container {
-            position: relative;
-        }
+@media (max-width: 992px) {
+    .summary-panel {
+        position: relative;
+        margin-top: 30px;
+    }
+}
+</style>
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-3 px-md-5 py-4">
+    <h1 class="section-title text-center w-100 mb-3">Конструктор вашего дома</h1>
+    <p class="text-center text-muted mb-5">Создайте проект мечты за 14 шагов • Получите точную смету</p>
 
+    <div class="row">
+        <!-- Левая колонка - Калькулятор -->
+        <div class="col-lg-8">
+            <form id="projectCalculator">
+                <!-- 1. Площадь -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-ruler-combined me-2"></i>1. Площадь дома (по полу)</h3>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Мин: 50 м²</span>
+                        <span class="range-value" id="areaValue">50 м²</span>
+                        <span>Макс: 500 м²</span>
+                    </div>
+                    <input type="range" class="form-range" id="areaRange" min="50" max="500" value="50" step="10">
+                </div>
 
-        .form-range {
-            position: relative;
-            z-index: 1;
-        }
+                <!-- 2. Этажность -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-layer-group me-2"></i>2. Этажность</h3>
+                    <div class="row g-3" id="floorsType">
+                        <div class="col-6 col-md-3">
+                            <div class="option-button active" data-value="1.0">
+                                <i class="fas fa-home"></i>
+                                <div>1 этаж</div>
+                                <span class="option-price">Базовая цена</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="1.15">
+                                <i class="fas fa-building"></i>
+                                <div>1.5 этажа</div>
+                                <span class="option-price">+15%</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="1.3">
+                                <i class="fas fa-city"></i>
+                                <div>2 этажа</div>
+                                <span class="option-price">+30%</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="1.2">
+                                <i class="fas fa-mountain"></i>
+                                <div>Мансарда</div>
+                                <span class="option-price">+20%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        /* Summary Panel */
-        .summary-panel {
-            position: sticky;
-            top: 20px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-        }
+                <!-- 3. Материал стен -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-cube me-2"></i>3. Материал стен</h3>
+                    <div class="row g-3" id="wallMaterial">
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="22000">
+                                <i class="fas fa-tree"></i>
+                                <div>Каркасный</div>
+                                <span class="option-price">22 000 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button active" data-value="28000">
+                                <i class="fas fa-box"></i>
+                                <div>Газобетон</div>
+                                <span class="option-price">28 000 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="35000">
+                                <i class="fas fa-warehouse"></i>
+                                <div>Кирпич</div>
+                                <span class="option-price">35 000 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="26000">
+                                <i class="fas fa-cubes"></i>
+                                <div>Керамоблок</div>
+                                <span class="option-price">26 000 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="30000">
+                                <i class="fas fa-tree"></i>
+                                <div>Брус</div>
+                                <span class="option-price">30 000 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="38000">
+                                <i class="fas fa-tree"></i>
+                                <div>Оцил. бревно</div>
+                                <span class="option-price">38 000 ₽/м²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        .total-price {
-            font-size: 2.5em;
-            font-weight: 900;
-            text-align: center;
-            margin: 20px 0;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
+                <!-- 4. Фундамент -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-hammer me-2"></i>4. Тип фундамента</h3>
+                    <div class="row g-3" id="foundationType">
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="3500">
+                                <i class="fas fa-road"></i>
+                                <div>Ленточный</div>
+                                <span class="option-price">3 500 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button active" data-value="4200">
+                                <i class="fas fa-border-all"></i>
+                                <div>Плита</div>
+                                <span class="option-price">4 200 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="2800">
+                                <i class="fas fa-screwdriver"></i>
+                                <div>Сваи</div>
+                                <span class="option-price">2 800 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="4800">
+                                <i class="fas fa-layer-group"></i>
+                                <div>Ростверк</div>
+                                <span class="option-price">4 800 ₽/м²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        .back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 1.5em;
-            box-shadow: 0 4px 20px rgba(0, 123, 255, 0.3);
-            z-index: 999;
-            transition: var(--transition);
-            opacity: 0;
-            visibility: hidden;
-        }
-        .back-to-top.show { opacity: 1; visibility: visible; }
-        .back-to-top:hover { background: var(--accent-color); transform: translateY(-5px) scale(1.1); }
+                <!-- 5. Кровля -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-home me-2"></i>5. Кровельный материал</h3>
+                    <div class="row g-3" id="roofMaterial">
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="1800">
+                                <i class="fas fa-grip-lines"></i>
+                                <div>Ондулин</div>
+                                <span class="option-price">1 800 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button active" data-value="2200">
+                                <i class="fas fa-th"></i>
+                                <div>Металлочерепица</div>
+                                <span class="option-price">2 200 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="2800">
+                                <i class="fas fa-cloud"></i>
+                                <div>Гибкая</div>
+                                <span class="option-price">2 800 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="4500">
+                                <i class="fas fa-crown"></i>
+                                <div>Натуральная</div>
+                                <span class="option-price">4 500 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="3200">
+                                <i class="fas fa-gem"></i>
+                                <div>Композитная</div>
+                                <span class="option-price">3 200 ₽/м²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        footer { background: var(--primary-color); color: white; padding: 30px 0; }
-        .social-link {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            overflow: hidden;
-            transition: var(--transition);
-        }
-        .social-link:hover { transform: scale(1.2); }
-        .social-link img { width: 100%; height: 100%; object-fit: cover; }
+                <!-- 6. Утепление -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-snowflake me-2"></i>6. Утепление</h3>
+                    <div class="row g-3" id="insulationType">
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="0">
+                                <i class="fas fa-times-circle"></i>
+                                <div>Без утепления</div>
+                                <span class="option-price">0 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button active" data-value="850">
+                                <i class="fas fa-temperature-low"></i>
+                                <div>Минвата</div>
+                                <span class="option-price">850 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="950">
+                                <i class="fas fa-box-open"></i>
+                                <div>Пенополистирол</div>
+                                <span class="option-price">950 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="1200">
+                                <i class="fas fa-leaf"></i>
+                                <div>Эковата</div>
+                                <span class="option-price">1 200 ₽/м²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        @media (max-width: 992px) {
-            .summary-panel {
-                position: relative;
-                margin-top: 30px;
-            }
-        }
-    
-        /* Счётчик корзины в меню */
-        .cart-badge {
-            background: var(--accent-color);
-            color: white; border-radius: 50%;
-            width: 22px; height: 22px;
-            font-size: 0.75em; font-weight: bold;
-            display: inline-flex; align-items: center; justify-content: center;
-            margin-left: auto;
-        }
-    </style>
-</head>
-<body>
-    <!-- Боковое меню -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">🏠 Надёжный дом</div>
-            <div class="logo-subtitle">Строим для жизни</div>
+                <!-- 7. Фасад -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-paint-roller me-2"></i>7. Отделка фасада</h3>
+                    <div class="row g-3" id="facadeType">
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="0">
+                                <i class="fas fa-ban"></i>
+                                <div>Без отделки</div>
+                                <span class="option-price">0 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="1200">
+                                <i class="fas fa-brush"></i>
+                                <div>Штукатурка</div>
+                                <span class="option-price">1 200 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button active" data-value="1600">
+                                <i class="fas fa-grip-lines-vertical"></i>
+                                <div>Сайдинг</div>
+                                <span class="option-price">1 600 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="2800">
+                                <i class="fas fa-warehouse"></i>
+                                <div>Облиц. кирпич</div>
+                                <span class="option-price">2 800 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="2200">
+                                <i class="fas fa-tree"></i>
+                                <div>Планкен</div>
+                                <span class="option-price">2 200 ₽/м²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. Окна -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-window-maximize me-2"></i>8. Окна и двери</h3>
+                    <div class="row g-3" id="windowsType">
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="0">
+                                <i class="fas fa-minus-circle"></i>
+                                <div>Без окон</div>
+                                <span class="option-price">0 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button active" data-value="180000">
+                                <i class="fas fa-window-restore"></i>
+                                <div>ПВХ стандарт</div>
+                                <span class="option-price">180 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="280000">
+                                <i class="fas fa-star"></i>
+                                <div>ПВХ премиум</div>
+                                <span class="option-price">280 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="350000">
+                                <i class="fas fa-tree"></i>
+                                <div>Деревянные</div>
+                                <span class="option-price">350 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="450000">
+                                <i class="fas fa-expand"></i>
+                                <div>Панорамные</div>
+                                <span class="option-price">450 000 ₽</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. Инженерия -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-tools me-2"></i>9. Инженерные системы</h3>
+                    <div class="row g-3" id="engineeringType">
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="0">
+                                <i class="fas fa-times"></i>
+                                <div>Без систем</div>
+                                <span class="option-price">0 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="150000">
+                                <i class="fas fa-bolt"></i>
+                                <div>Электрика</div>
+                                <span class="option-price">150 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button active" data-value="280000">
+                                <i class="fas fa-plug"></i>
+                                <div>Электрика + вода</div>
+                                <span class="option-price">280 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="450000">
+                                <i class="fas fa-cogs"></i>
+                                <div>Полный комплект</div>
+                                <span class="option-price">450 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="650000">
+                                <i class="fas fa-robot"></i>
+                                <div>Умный дом</div>
+                                <span class="option-price">650 000 ₽</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10. Отопление -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-fire me-2"></i>10. Система отопления</h3>
+                    <div class="row g-3" id="heatingType">
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="0">
+                                <i class="fas fa-ban"></i>
+                                <div>Без отопления</div>
+                                <span class="option-price">0 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="180000">
+                                <i class="fas fa-bolt"></i>
+                                <div>Электрокотел</div>
+                                <span class="option-price">180 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button active" data-value="250000">
+                                <i class="fas fa-fire"></i>
+                                <div>Газовый котел</div>
+                                <span class="option-price">250 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="320000">
+                                <i class="fas fa-th-large"></i>
+                                <div>Теплый пол</div>
+                                <span class="option-price">320 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button" data-value="280000">
+                                <i class="fas fa-burn"></i>
+                                <div>Твердотопливный</div>
+                                <span class="option-price">280 000 ₽</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 11. Дополнительные помещения -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-plus-square me-2"></i>11. Дополнительные помещения (можно выбрать несколько)</h3>
+                    <div class="row g-3" id="extraRooms">
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="450000" data-checked="false">
+                                <i class="fas fa-car"></i>
+                                <div>Гараж</div>
+                                <span class="option-price">+450 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="250000" data-checked="false">
+                                <i class="fas fa-umbrella-beach"></i>
+                                <div>Терраса</div>
+                                <span class="option-price">+250 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="180000" data-checked="false">
+                                <i class="fas fa-fire-alt"></i>
+                                <div>Котельная</div>
+                                <span class="option-price">+180 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="320000" data-checked="false">
+                                <i class="fas fa-swimming-pool"></i>
+                                <div>Бассейн</div>
+                                <span class="option-price">+320 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="280000" data-checked="false">
+                                <i class="fas fa-hot-tub"></i>
+                                <div>Сауна</div>
+                                <span class="option-price">+280 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="150000" data-checked="false">
+                                <i class="fas fa-home"></i>
+                                <div>Веранда</div>
+                                <span class="option-price">+150 000 ₽</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 12. Внутренняя отделка -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-paint-brush me-2"></i>12. Внутренняя отделка</h3>
+                    <div class="row g-3" id="interiorType">
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="0">
+                                <i class="fas fa-hammer"></i>
+                                <div>Без отделки</div>
+                                <span class="option-price">0 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="8500">
+                                <i class="fas fa-hard-hat"></i>
+                                <div>Черновая</div>
+                                <span class="option-price">8 500 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button active" data-value="12000">
+                                <i class="fas fa-broom"></i>
+                                <div>Предчистовая</div>
+                                <span class="option-price">12 000 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="18000">
+                                <i class="fas fa-star"></i>
+                                <div>Чистовая</div>
+                                <span class="option-price">18 000 ₽/м²</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="25000">
+                                <i class="fas fa-crown"></i>
+                                <div>Премиум</div>
+                                <span class="option-price">25 000 ₽/м²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 13. Ландшафт -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-tree me-2"></i>13. Благоустройство участка (можно выбрать несколько)</h3>
+                    <div class="row g-3" id="landscapeOptions">
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="180000" data-checked="false">
+                                <i class="fas fa-road"></i>
+                                <div>Мощение дорожек</div>
+                                <span class="option-price">+180 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="120000" data-checked="false">
+                                <i class="fas fa-seedling"></i>
+                                <div>Газон</div>
+                                <span class="option-price">+120 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="250000" data-checked="false">
+                                <i class="fas fa-fire"></i>
+                                <div>Зона барбекю</div>
+                                <span class="option-price">+250 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="90000" data-checked="false">
+                                <i class="fas fa-lightbulb"></i>
+                                <div>Освещение</div>
+                                <span class="option-price">+90 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="option-button extra-option" data-value="150000" data-checked="false">
+                                <i class="fas fa-water"></i>
+                                <div>Автополив</div>
+                                <span class="option-price">+150 000 ₽</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 14. Проектирование -->
+                <div class="calculator-group">
+                    <h3><i class="fas fa-drafting-compass me-2"></i>14. Проектирование</h3>
+                    <div class="row g-3" id="projectType">
+                        <div class="col-6 col-md-3">
+                            <div class="option-button active" data-value="0">
+                                <i class="fas fa-copy"></i>
+                                <div>Типовой</div>
+                                <span class="option-price">Бесплатно</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="150000">
+                                <i class="fas fa-edit"></i>
+                                <div>Адаптация</div>
+                                <span class="option-price">150 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="350000">
+                                <i class="fas fa-pencil-ruler"></i>
+                                <div>Индивидуальный</div>
+                                <span class="option-price">350 000 ₽</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="option-button" data-value="600000">
+                                <i class="fas fa-gem"></i>
+                                <div>Эксклюзивный</div>
+                                <span class="option-price">600 000 ₽</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
-        
-<ul class="sidebar-menu">
-    <li><a href="index.html" ><i class="fas fa-home"></i> Главная</a></li>
-    <li><a href="uslugi.html" ><i class="fas fa-tools"></i> Услуги</a></li>
-    <li><a href="portfolio.html" ><i class="fas fa-folder"></i> Портфолио</a></li>
-    <li><a href="prices.html" ><i class="fas fa-money-bill-wave"></i> Цены (Прайс)</a></li>
-    <li><a href="kalkulyator.html" class="active"><i class="fas fa-calculator"></i> Конструктор проекта</a></li>
-    <li><a href="cart.html" ><i class="fas fa-shopping-cart"></i> Корзина <span class="cart-badge" id="cartBadgeMenu">0</span></a></li>
-    <li><a href="cabinet.html" ><i class="fas fa-user"></i> Личный кабинет</a></li>
-    <li><a href="reviews.html" ><i class="fas fa-comments"></i> Отзывы</a></li>
-    <li><a href="kontakty.html" ><i class="fas fa-phone"></i> Контакты</a></li>
-</ul>
-    </div>
 
-    <div class="overlay" id="overlay"></div>
-    <button class="menu-toggle" id="menuToggle">☰</button>
+        <!-- Правая колонка - Смета -->
+        <div class="col-lg-4">
+            <div class="summary-panel">
+                <h3 class="text-center mb-4"><i class="fas fa-chart-bar me-2"></i>Детальная смета</h3>
+                
+                <div class="border-bottom border-light pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Площадь:</span>
+                        <span id="summaryArea" class="fw-bold">50 м²</span>
+                    </div>
+                </div>
+                
+                <div class="border-bottom border-light pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Стены:</span>
+                        <span id="summaryWalls" class="fw-bold">0 ₽</span>
+                    </div>
+                </div>
+                
+                <div class="border-bottom border-light pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Фундамент:</span>
+                        <span id="summaryFoundation" class="fw-bold">0 ₽</span>
+                    </div>
+                </div>
+                
+                <div class="border-bottom border-light pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Кровля:</span>
+                        <span id="summaryRoof" class="fw-bold">0 ₽</span>
+                    </div>
+                </div>
+                
+                <div class="border-bottom border-light pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Отделка:</span>
+                        <span id="summaryInterior" class="fw-bold">0 ₽</span>
+                    </div>
+                </div>
 
-    <!-- Основной контент -->
-    <div class="container-fluid px-3 px-md-5 py-4">
-        <h1 class="section-title text-center w-100 mb-3">Конструктор вашего дома</h1>
-        <p class="text-center text-muted mb-5">Создайте проект мечты за 14 шагов • Получите точную смету</p>
+                <div class="border-bottom border-light pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Инженерия:</span>
+                        <span id="summaryEngineering" class="fw-bold">0 ₽</span>
+                    </div>
+                </div>
+                
+                <div class="border-bottom border-light pb-2 mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Дополнительно:</span>
+                        <span id="summaryExtras" class="fw-bold">0 ₽</span>
+                    </div>
+                </div>
 
-        <div class="row">
-            <!-- Левая колонка - Калькулятор -->
-            <div class="col-lg-8">
-                <form id="projectCalculator">
-                    <!-- 1. Площадь -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-ruler-combined me-2"></i>1. Площадь дома (по полу)</h3>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span>Мин: 50 м²</span>
-                            <span class="range-value" id="areaValue">50 м²</span>
-                            <span>Макс: 500 м²</span>
-                        </div>
-                        <input type="range" class="form-range" id="areaRange" min="50" max="500" value="50" step="10">
-                    </div>
+                <div class="total-price" id="totalPrice">0 ₽</div>
 
-                    <!-- 2. Этажность -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-layer-group me-2"></i>2. Этажность</h3>
-                        <div class="row g-3" id="floorsType">
-                            <div class="col-6 col-md-3">
-                                <div class="option-button active" data-value="1.0">
-                                    <i class="fas fa-home"></i>
-                                    <div>1 этаж</div>
-                                    <span class="option-price">Базовая цена</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="1.15">
-                                    <i class="fas fa-building"></i>
-                                    <div>1.5 этажа</div>
-                                    <span class="option-price">+15%</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="1.3">
-                                    <i class="fas fa-city"></i>
-                                    <div>2 этажа</div>
-                                    <span class="option-price">+30%</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="1.2">
-                                    <i class="fas fa-mountain"></i>
-                                    <div>Мансарда</div>
-                                    <span class="option-price">+20%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="text-center p-3 bg-white bg-opacity-10 rounded mb-3">
+                    <p class="mb-1 small">💰 Возможна рассрочка на 12 месяцев</p>
+                    <p class="mb-0 small">⏱️ Срок строительства: <span id="constructionTime">6-8 месяцев</span></p>
+                </div>
 
-                    <!-- 3. Материал стен -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-cube me-2"></i>3. Материал стен</h3>
-                        <div class="row g-3" id="wallMaterial">
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="22000">
-                                    <i class="fas fa-tree"></i>
-                                    <div>Каркасный</div>
-                                    <span class="option-price">22 000 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button active" data-value="28000">
-                                    <i class="fas fa-box"></i>
-                                    <div>Газобетон</div>
-                                    <span class="option-price">28 000 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="35000">
-                                    <i class="fas fa-warehouse"></i>
-                                    <div>Кирпич</div>
-                                    <span class="option-price">35 000 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="26000">
-                                    <i class="fas fa-cubes"></i>
-                                    <div>Керамоблок</div>
-                                    <span class="option-price">26 000 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="30000">
-                                    <i class="fas fa-tree"></i>
-                                    <div>Брус</div>
-                                    <span class="option-price">30 000 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="38000">
-                                    <i class="fas fa-tree"></i>
-                                    <div>Оцил. бревно</div>
-                                    <span class="option-price">38 000 ₽/м²</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 4. Фундамент -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-hammer me-2"></i>4. Тип фундамента</h3>
-                        <div class="row g-3" id="foundationType">
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="3500">
-                                    <i class="fas fa-road"></i>
-                                    <div>Ленточный</div>
-                                    <span class="option-price">3 500 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button active" data-value="4200">
-                                    <i class="fas fa-border-all"></i>
-                                    <div>Плита</div>
-                                    <span class="option-price">4 200 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="2800">
-                                    <i class="fas fa-screwdriver"></i>
-                                    <div>Сваи</div>
-                                    <span class="option-price">2 800 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="4800">
-                                    <i class="fas fa-layer-group"></i>
-                                    <div>Ростверк</div>
-                                    <span class="option-price">4 800 ₽/м²</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 5. Кровля -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-home me-2"></i>5. Кровельный материал</h3>
-                        <div class="row g-3" id="roofMaterial">
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="1800">
-                                    <i class="fas fa-grip-lines"></i>
-                                    <div>Ондулин</div>
-                                    <span class="option-price">1 800 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button active" data-value="2200">
-                                    <i class="fas fa-th"></i>
-                                    <div>Металлочерепица</div>
-                                    <span class="option-price">2 200 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="2800">
-                                    <i class="fas fa-cloud"></i>
-                                    <div>Гибкая</div>
-                                    <span class="option-price">2 800 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="4500">
-                                    <i class="fas fa-crown"></i>
-                                    <div>Натуральная</div>
-                                    <span class="option-price">4 500 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="3200">
-                                    <i class="fas fa-gem"></i>
-                                    <div>Композитная</div>
-                                    <span class="option-price">3 200 ₽/м²</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 6. Утепление -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-snowflake me-2"></i>6. Утепление</h3>
-                        <div class="row g-3" id="insulationType">
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="0">
-                                    <i class="fas fa-times-circle"></i>
-                                    <div>Без утепления</div>
-                                    <span class="option-price">0 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button active" data-value="850">
-                                    <i class="fas fa-temperature-low"></i>
-                                    <div>Минвата</div>
-                                    <span class="option-price">850 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="950">
-                                    <i class="fas fa-box-open"></i>
-                                    <div>Пенополистирол</div>
-                                    <span class="option-price">950 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="1200">
-                                    <i class="fas fa-leaf"></i>
-                                    <div>Эковата</div>
-                                    <span class="option-price">1 200 ₽/м²</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 7. Фасад -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-paint-roller me-2"></i>7. Отделка фасада</h3>
-                        <div class="row g-3" id="facadeType">
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="0">
-                                    <i class="fas fa-ban"></i>
-                                    <div>Без отделки</div>
-                                    <span class="option-price">0 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="1200">
-                                    <i class="fas fa-brush"></i>
-                                    <div>Штукатурка</div>
-                                    <span class="option-price">1 200 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button active" data-value="1600">
-                                    <i class="fas fa-grip-lines-vertical"></i>
-                                    <div>Сайдинг</div>
-                                    <span class="option-price">1 600 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="2800">
-                                    <i class="fas fa-warehouse"></i>
-                                    <div>Облиц. кирпич</div>
-                                    <span class="option-price">2 800 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="2200">
-                                    <i class="fas fa-tree"></i>
-                                    <div>Планкен</div>
-                                    <span class="option-price">2 200 ₽/м²</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 8. Окна -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-window-maximize me-2"></i>8. Окна и двери</h3>
-                        <div class="row g-3" id="windowsType">
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="0">
-                                    <i class="fas fa-minus-circle"></i>
-                                    <div>Без окон</div>
-                                    <span class="option-price">0 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button active" data-value="180000">
-                                    <i class="fas fa-window-restore"></i>
-                                    <div>ПВХ стандарт</div>
-                                    <span class="option-price">180 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="280000">
-                                    <i class="fas fa-star"></i>
-                                    <div>ПВХ премиум</div>
-                                    <span class="option-price">280 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="350000">
-                                    <i class="fas fa-tree"></i>
-                                    <div>Деревянные</div>
-                                    <span class="option-price">350 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="450000">
-                                    <i class="fas fa-expand"></i>
-                                    <div>Панорамные</div>
-                                    <span class="option-price">450 000 ₽</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 9. Инженерия -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-tools me-2"></i>9. Инженерные системы</h3>
-                        <div class="row g-3" id="engineeringType">
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="0">
-                                    <i class="fas fa-times"></i>
-                                    <div>Без систем</div>
-                                    <span class="option-price">0 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="150000">
-                                    <i class="fas fa-bolt"></i>
-                                    <div>Электрика</div>
-                                    <span class="option-price">150 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button active" data-value="280000">
-                                    <i class="fas fa-plug"></i>
-                                    <div>Электрика + вода</div>
-                                    <span class="option-price">280 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="450000">
-                                    <i class="fas fa-cogs"></i>
-                                    <div>Полный комплект</div>
-                                    <span class="option-price">450 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="650000">
-                                    <i class="fas fa-robot"></i>
-                                    <div>Умный дом</div>
-                                    <span class="option-price">650 000 ₽</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 10. Отопление -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-fire me-2"></i>10. Система отопления</h3>
-                        <div class="row g-3" id="heatingType">
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="0">
-                                    <i class="fas fa-ban"></i>
-                                    <div>Без отопления</div>
-                                    <span class="option-price">0 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="180000">
-                                    <i class="fas fa-bolt"></i>
-                                    <div>Электрокотел</div>
-                                    <span class="option-price">180 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button active" data-value="250000">
-                                    <i class="fas fa-fire"></i>
-                                    <div>Газовый котел</div>
-                                    <span class="option-price">250 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="320000">
-                                    <i class="fas fa-th-large"></i>
-                                    <div>Теплый пол</div>
-                                    <span class="option-price">320 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button" data-value="280000">
-                                    <i class="fas fa-burn"></i>
-                                    <div>Твердотопливный</div>
-                                    <span class="option-price">280 000 ₽</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 11. Дополнительные помещения -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-plus-square me-2"></i>11. Дополнительные помещения (можно выбрать несколько)</h3>
-                        <div class="row g-3" id="extraRooms">
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="450000" data-checked="false">
-                                    <i class="fas fa-car"></i>
-                                    <div>Гараж</div>
-                                    <span class="option-price">+450 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="250000" data-checked="false">
-                                    <i class="fas fa-umbrella-beach"></i>
-                                    <div>Терраса</div>
-                                    <span class="option-price">+250 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="180000" data-checked="false">
-                                    <i class="fas fa-fire-alt"></i>
-                                    <div>Котельная</div>
-                                    <span class="option-price">+180 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="320000" data-checked="false">
-                                    <i class="fas fa-swimming-pool"></i>
-                                    <div>Бассейн</div>
-                                    <span class="option-price">+320 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="280000" data-checked="false">
-                                    <i class="fas fa-hot-tub"></i>
-                                    <div>Сауна</div>
-                                    <span class="option-price">+280 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="150000" data-checked="false">
-                                    <i class="fas fa-home"></i>
-                                    <div>Веранда</div>
-                                    <span class="option-price">+150 000 ₽</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 12. Внутренняя отделка -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-paint-brush me-2"></i>12. Внутренняя отделка</h3>
-                        <div class="row g-3" id="interiorType">
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="0">
-                                    <i class="fas fa-hammer"></i>
-                                    <div>Без отделки</div>
-                                    <span class="option-price">0 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="8500">
-                                    <i class="fas fa-hard-hat"></i>
-                                    <div>Черновая</div>
-                                    <span class="option-price">8 500 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button active" data-value="12000">
-                                    <i class="fas fa-broom"></i>
-                                    <div>Предчистовая</div>
-                                    <span class="option-price">12 000 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="18000">
-                                    <i class="fas fa-star"></i>
-                                    <div>Чистовая</div>
-                                    <span class="option-price">18 000 ₽/м²</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="25000">
-                                    <i class="fas fa-crown"></i>
-                                    <div>Премиум</div>
-                                    <span class="option-price">25 000 ₽/м²</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 13. Ландшафт -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-tree me-2"></i>13. Благоустройство участка (можно выбрать несколько)</h3>
-                        <div class="row g-3" id="landscapeOptions">
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="180000" data-checked="false">
-                                    <i class="fas fa-road"></i>
-                                    <div>Мощение дорожек</div>
-                                    <span class="option-price">+180 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="120000" data-checked="false">
-                                    <i class="fas fa-seedling"></i>
-                                    <div>Газон</div>
-                                    <span class="option-price">+120 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="250000" data-checked="false">
-                                    <i class="fas fa-fire"></i>
-                                    <div>Зона барбекю</div>
-                                    <span class="option-price">+250 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="90000" data-checked="false">
-                                    <i class="fas fa-lightbulb"></i>
-                                    <div>Освещение</div>
-                                    <span class="option-price">+90 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="option-button extra-option" data-value="150000" data-checked="false">
-                                    <i class="fas fa-water"></i>
-                                    <div>Автополив</div>
-                                    <span class="option-price">+150 000 ₽</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 14. Проектирование -->
-                    <div class="calculator-group">
-                        <h3><i class="fas fa-drafting-compass me-2"></i>14. Проектирование</h3>
-                        <div class="row g-3" id="projectType">
-                            <div class="col-6 col-md-3">
-                                <div class="option-button active" data-value="0">
-                                    <i class="fas fa-copy"></i>
-                                    <div>Типовой</div>
-                                    <span class="option-price">Бесплатно</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="150000">
-                                    <i class="fas fa-edit"></i>
-                                    <div>Адаптация</div>
-                                    <span class="option-price">150 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="350000">
-                                    <i class="fas fa-pencil-ruler"></i>
-                                    <div>Индивидуальный</div>
-                                    <span class="option-price">350 000 ₽</span>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="option-button" data-value="600000">
-                                    <i class="fas fa-gem"></i>
-                                    <div>Эксклюзивный</div>
-                                    <span class="option-price">600 000 ₽</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Правая колонка - Смета -->
-            <div class="col-lg-4">
-                <div class="summary-panel">
-                    <h3 class="text-center mb-4"><i class="fas fa-chart-bar me-2"></i>Детальная смета</h3>
-                    
-                    <div class="border-bottom border-light pb-2 mb-2">
-                        <div class="d-flex justify-content-between">
-                            <span>Площадь:</span>
-                            <span id="summaryArea" class="fw-bold">50 м²</span>
-                        </div>
-                    </div>
-                    
-                    <div class="border-bottom border-light pb-2 mb-2">
-                        <div class="d-flex justify-content-between">
-                            <span>Стены:</span>
-                            <span id="summaryWalls" class="fw-bold">0 ₽</span>
-                        </div>
-                    </div>
-                    
-                    <div class="border-bottom border-light pb-2 mb-2">
-                        <div class="d-flex justify-content-between">
-                            <span>Фундамент:</span>
-                            <span id="summaryFoundation" class="fw-bold">0 ₽</span>
-                        </div>
-                    </div>
-                    
-                    <div class="border-bottom border-light pb-2 mb-2">
-                        <div class="d-flex justify-content-between">
-                            <span>Кровля:</span>
-                            <span id="summaryRoof" class="fw-bold">0 ₽</span>
-                        </div>
-                    </div>
-                    
-                    <div class="border-bottom border-light pb-2 mb-2">
-                        <div class="d-flex justify-content-between">
-                            <span>Отделка:</span>
-                            <span id="summaryInterior" class="fw-bold">0 ₽</span>
-                        </div>
-                    </div>
-
-                    <div class="border-bottom border-light pb-2 mb-2">
-                        <div class="d-flex justify-content-between">
-                            <span>Инженерия:</span>
-                            <span id="summaryEngineering" class="fw-bold">0 ₽</span>
-                        </div>
-                    </div>
-                    
-                    <div class="border-bottom border-light pb-2 mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>Дополнительно:</span>
-                            <span id="summaryExtras" class="fw-bold">0 ₽</span>
-                        </div>
-                    </div>
-
-                    <div class="total-price" id="totalPrice">0 ₽</div>
-
-                    <div class="text-center p-3 bg-white bg-opacity-10 rounded mb-3">
-                        <p class="mb-1 small">💰 Возможна рассрочка на 12 месяцев</p>
-                        <p class="mb-0 small">⏱️ Срок строительства: <span id="constructionTime">6-8 месяцев</span></p>
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-light btn-lg" id="sendRequest">
-                            <i class="fas fa-paper-plane me-2"></i>Отправить заявку
-                        </button>
-                        <button type="button" class="btn btn-outline-light" id="saveConfig">
-                            <i class="fas fa-save me-2"></i>Сохранить
-                        </button>
-                    </div>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-light btn-lg" id="sendRequest">
+                        <i class="fas fa-paper-plane me-2"></i>Отправить заявку
+                    </button>
+                    <button type="button" class="btn btn-outline-light" id="saveConfig">
+                        <i class="fas fa-save me-2"></i>Сохранить
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 <!-- ЗАДАНИЕ 4: Калькулятор срока строительства -->
-        <section class="mb-5 mt-5">
-            <div class="card border-0 shadow-lg">
-                <div class="card-body p-4">
-                    <h2 class="section-title text-center w-100 mb-4">
-                        <i class="fas fa-calendar-alt me-2"></i>Расчёт точного срока строительства
-                    </h2>
-                    
-                    <p class="text-center text-muted mb-4">
-                        Узнайте, когда ваш дом будет готов, с учётом погодных условий, сложности проекта и загруженности бригады
-                    </p>
+<section class="mb-5 mt-5">
+    <div class="card border-0 shadow-lg">
+        <div class="card-body p-4">
+            <h2 class="section-title text-center w-100 mb-4">
+                <i class="fas fa-calendar-alt me-2"></i>Расчёт точного срока строительства
+            </h2>
+            
+            <p class="text-center text-muted mb-4">
+                Узнайте, когда ваш дом будет готов, с учётом погодных условий, сложности проекта и загруженности бригады
+            </p>
 
+            <div class="row">
+                <div class="col-lg-6 mb-3">
+                    <label class="form-label fw-bold">Время года начала строительства</label>
+                    <select class="form-select" id="season">
+                        <option value="1.0">Весна (март-май)</option>
+                        <option value="0.9">Лето (июнь-август)</option>
+                        <option value="1.2">Осень (сентябрь-ноябрь)</option>
+                        <option value="1.5">Зима (декабрь-февраль)</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-6 mb-3">
+                    <label class="form-label fw-bold">Сложность проекта</label>
+                    <select class="form-select" id="complexity">
+                        <option value="1.0">Типовой проект</option>
+                        <option value="1.3">Индивидуальный проект</option>
+                        <option value="1.6">Сложная архитектура</option>
+                        <option value="2.0">Эксклюзивный проект</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-6 mb-3">
+                    <label class="form-label fw-bold">Количество этажей</label>
+                    <input type="number" class="form-control" id="floors" min="1" max="3" value="1">
+                </div>
+
+                <div class="col-lg-6 mb-3">
+                    <label class="form-label fw-bold">Площадь (м²)</label>
+                    <input type="number" class="form-control" id="totalArea" min="50" max="500" value="100" step="10">
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label fw-bold">Наличие дополнительных работ</label>
                     <div class="row">
-                        <div class="col-lg-6 mb-3">
-                            <label class="form-label fw-bold">Время года начала строительства</label>
-                            <select class="form-select" id="season">
-                                <option value="1.0">Весна (март-май)</option>
-                                <option value="0.9">Лето (июнь-август)</option>
-                                <option value="1.2">Осень (сентябрь-ноябрь)</option>
-                                <option value="1.5">Зима (декабрь-февраль)</option>
-                            </select>
-                        </div>
-
-                        <div class="col-lg-6 mb-3">
-                            <label class="form-label fw-bold">Сложность проекта</label>
-                            <select class="form-select" id="complexity">
-                                <option value="1.0">Типовой проект</option>
-                                <option value="1.3">Индивидуальный проект</option>
-                                <option value="1.6">Сложная архитектура</option>
-                                <option value="2.0">Эксклюзивный проект</option>
-                            </select>
-                        </div>
-
-                        <div class="col-lg-6 mb-3">
-                            <label class="form-label fw-bold">Количество этажей</label>
-                            <input type="number" class="form-control" id="floors" min="1" max="3" value="1">
-                        </div>
-
-                        <div class="col-lg-6 mb-3">
-                            <label class="form-label fw-bold">Площадь (м²)</label>
-                            <input type="number" class="form-control" id="totalArea" min="50" max="500" value="100" step="10">
-                        </div>
-
-                        <div class="col-12 mb-3">
-                            <label class="form-label fw-bold">Наличие дополнительных работ</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="extraGarage" value="14">
-                                        <label class="form-check-label" for="extraGarage">
-                                            Гараж (+14 дней)
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="extraPool" value="30">
-                                        <label class="form-check-label" for="extraPool">
-                                            Бассейн (+30 дней)
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="extraLandscape" value="10">
-                                        <label class="form-check-label" for="extraLandscape">
-                                            Ландшафт (+10 дней)
-                                        </label>
-                                    </div>
-                                </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="extraGarage" value="14">
+                                <label class="form-check-label" for="extraGarage">
+                                    Гараж (+14 дней)
+                                </label>
                             </div>
                         </div>
-                    </div>
-
-                    <button type="button" class="btn btn-primary w-100 py-3 mt-3" id="calculateTime">
-                        <i class="fas fa-calculator me-2"></i>Рассчитать срок
-                    </button>
-
-                    <!-- Результат -->
-                    <div id="timeResult" class="mt-4 p-4 bg-light rounded" style="display: none;">
-                        <div class="row text-center">
-                            <div class="col-md-4 mb-3">
-                                <div class="fs-2 fw-bold text-primary" id="resultDays">0</div>
-                                <div class="text-muted">Дней</div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="fs-2 fw-bold text-success" id="resultMonths">0</div>
-                                <div class="text-muted">Месяцев</div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="fs-4 fw-bold text-info" id="resultDate">-</div>
-                                <div class="text-muted">Готовность</div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="extraPool" value="30">
+                                <label class="form-check-label" for="extraPool">
+                                    Бассейн (+30 дней)
+                                </label>
                             </div>
                         </div>
-
-                        <div class="alert alert-info mt-3" id="resultDetails">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <span id="detailsText"></span>
-                        </div>
-
-                        <!-- График работ -->
-                        <div class="mt-4">
-                            <h5 class="mb-3">Этапы строительства:</h5>
-                            <div class="progress mb-2" style="height: 25px;">
-                                <div class="progress-bar bg-success" style="width: 20%">Фундамент</div>
-                            </div>
-                            <div class="progress mb-2" style="height: 25px;">
-                                <div class="progress-bar bg-primary" style="width: 30%">Стены и кровля</div>
-                            </div>
-                            <div class="progress mb-2" style="height: 25px;">
-                                <div class="progress-bar bg-warning" style="width: 25%">Коммуникации</div>
-                            </div>
-                            <div class="progress mb-2" style="height: 25px;">
-                                <div class="progress-bar bg-info" style="width: 25%">Отделка</div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="extraLandscape" value="10">
+                                <label class="form-check-label" for="extraLandscape">
+                                    Ландшафт (+10 дней)
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
 
-    <!-- Footer -->
-    <footer class="text-center mt-5">
-        <div class="container">
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <a href="https://vk.com" class="social-link">
-                    <img src="img/vk.jpg" alt="ВКонтакте">
-                </a>
-                <a href="https://ok.ru" class="social-link">
-                    <img src="img/ok.jpg" alt="Одноклассники">
-                </a>
-                <a href="https://t.me" class="social-link">
-                    <img src="img/tg.jpg" alt="Telegram">
-                </a>
+            <button type="button" class="btn btn-primary w-100 py-3 mt-3" id="calculateTime">
+                <i class="fas fa-calculator me-2"></i>Рассчитать срок
+            </button>
+
+            <!-- Результат -->
+            <div id="timeResult" class="mt-4 p-4 bg-light rounded" style="display: none;">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="fs-2 fw-bold text-primary" id="resultDays">0</div>
+                        <div class="text-muted">Дней</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="fs-2 fw-bold text-success" id="resultMonths">0</div>
+                        <div class="text-muted">Месяцев</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="fs-4 fw-bold text-info" id="resultDate">-</div>
+                        <div class="text-muted">Готовность</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3" id="resultDetails">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span id="detailsText"></span>
+                </div>
+
+                <!-- График работ -->
+                <div class="mt-4">
+                    <h5 class="mb-3">Этапы строительства:</h5>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-success" style="width: 20%">Фундамент</div>
+                    </div>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-primary" style="width: 30%">Стены и кровля</div>
+                    </div>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-warning" style="width: 25%">Коммуникации</div>
+                    </div>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-info" style="width: 25%">Отделка</div>
+                    </div>
+                </div>
             </div>
-            <p class="mb-2">🗝️ Надёжный дом — Строим для жизни</p>
-            <p class="text-white-50">© 2025 Все права защищены</p>
         </div>
-    </footer>
+    </div>
+</section>
+{% endblock %}
 
-    <button class="back-to-top" id="backToTop">↑</button>
+{% block extra_js %}
+<script>
+// КАЛЬКУЛЯТОР
+const areaRange = document.getElementById('areaRange');
+const areaValue = document.getElementById('areaValue');
+const totalPriceDisplay = document.getElementById('totalPrice');
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        const sidebar = document.getElementById('sidebar');
-        const menuToggle = document.getElementById('menuToggle');
-        const overlay = document.getElementById('overlay');
+// Обновление цвета ползунка при изменении
+function updateRangeBackground() {
+    const value = areaRange.value;
+    const min = areaRange.min;
+    const max = areaRange.max;
+    const percent = ((value - min) / (max - min)) * 100;
+    areaRange.style.background = `linear-gradient(to right, var(--secondary-color) 0%, var(--secondary-color) ${percent}%, #ddd ${percent}%, #ddd 100%)`;
+}
 
-        function toggleMenu() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        menuToggle.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-
-        document.querySelectorAll('.sidebar-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    toggleMenu();
-                }
-            });
+function setupToggleGroup(container) {
+    const buttons = container.querySelectorAll('.option-button:not(.extra-option)');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            buttons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            updateTotal();
         });
+    });
+}
 
-        const backToTop = document.getElementById('backToTop');
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                backToTop.classList.add('show');
+function setupMultipleChoice(container) {
+    const buttons = container.querySelectorAll('.extra-option');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const isChecked = this.getAttribute('data-checked') === 'true';
+            if (isChecked) {
+                this.classList.remove('active');
+                this.setAttribute('data-checked', 'false');
             } else {
-                backToTop.classList.remove('show');
+                this.classList.add('active');
+                this.setAttribute('data-checked', 'true');
             }
+            updateTotal();
         });
+    });
+}
 
-        backToTop.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+function updateTotal() {
+    const area = parseInt(areaRange.value);
+    areaValue.textContent = `${area} м²`;
+    document.getElementById('summaryArea').textContent = `${area} м²`;
+    
+    updateRangeBackground();
 
-        // КАЛЬКУЛЯТОР
-        const areaRange = document.getElementById('areaRange');
-        const areaValue = document.getElementById('areaValue');
-        const totalPriceDisplay = document.getElementById('totalPrice');
-
-        // Обновление цвета ползунка при изменении
-        function updateRangeBackground() {
-            const value = areaRange.value;
-            const min = areaRange.min;
-            const max = areaRange.max;
-            const percent = ((value - min) / (max - min)) * 100;
-            areaRange.style.background = `linear-gradient(to right, var(--secondary-color) 0%, var(--secondary-color) ${percent}%, #ddd ${percent}%, #ddd 100%)`;
+    // Коэффициент этажности
+    let floorsCoeff = 1.0;
+    document.querySelectorAll('#floorsType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            floorsCoeff = parseFloat(btn.getAttribute('data-value'));
         }
+    });
 
-        function setupToggleGroup(container) {
-            const buttons = container.querySelectorAll('.option-button:not(.extra-option)');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    buttons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    updateTotal();
-                });
-            });
+    // Стоимость стен
+    let wallPrice = 0;
+    document.querySelectorAll('#wallMaterial .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            wallPrice = parseInt(btn.getAttribute('data-value'));
         }
+    });
 
-        function setupMultipleChoice(container) {
-            const buttons = container.querySelectorAll('.extra-option');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const isChecked = this.getAttribute('data-checked') === 'true';
-                    if (isChecked) {
-                        this.classList.remove('active');
-                        this.setAttribute('data-checked', 'false');
-                    } else {
-                        this.classList.add('active');
-                        this.setAttribute('data-checked', 'true');
-                    }
-                    updateTotal();
-                });
-            });
+    // Фундамент
+    let foundationPrice = 0;
+    document.querySelectorAll('#foundationType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            foundationPrice = parseInt(btn.getAttribute('data-value'));
         }
+    });
 
-        function updateTotal() {
-            const area = parseInt(areaRange.value);
-            areaValue.textContent = `${area} м²`;
-            document.getElementById('summaryArea').textContent = `${area} м²`;
-            
-            updateRangeBackground();
-
-            // Коэффициент этажности
-            let floorsCoeff = 1.0;
-            document.querySelectorAll('#floorsType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    floorsCoeff = parseFloat(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Стоимость стен
-            let wallPrice = 0;
-            document.querySelectorAll('#wallMaterial .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    wallPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Фундамент
-            let foundationPrice = 0;
-            document.querySelectorAll('#foundationType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    foundationPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Кровля
-            let roofPrice = 0;
-            document.querySelectorAll('#roofMaterial .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    roofPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Утепление
-            let insulationPrice = 0;
-            document.querySelectorAll('#insulationType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    insulationPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Фасад
-            let facadePrice = 0;
-            document.querySelectorAll('#facadeType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    facadePrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Окна
-            let windowsPrice = 0;
-            document.querySelectorAll('#windowsType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    windowsPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Инженерия
-            let engineeringPrice = 0;
-            document.querySelectorAll('#engineeringType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    engineeringPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Отопление
-            let heatingPrice = 0;
-            document.querySelectorAll('#heatingType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    heatingPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Внутренняя отделка
-            let interiorPrice = 0;
-            document.querySelectorAll('#interiorType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    interiorPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Проектирование
-            let projectPrice = 0;
-            document.querySelectorAll('#projectType .option-button').forEach(btn => {
-                if (btn.classList.contains('active')) {
-                    projectPrice = parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Дополнительные помещения
-            let extraRoomsTotal = 0;
-            document.querySelectorAll('#extraRooms .extra-option').forEach(btn => {
-                if (btn.getAttribute('data-checked') === 'true') {
-                    extraRoomsTotal += parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Ландшафт
-            let landscapeTotal = 0;
-            document.querySelectorAll('#landscapeOptions .extra-option').forEach(btn => {
-                if (btn.getAttribute('data-checked') === 'true') {
-                    landscapeTotal += parseInt(btn.getAttribute('data-value'));
-                }
-            });
-
-            // Расчёты
-            const wallsTotal = wallPrice * area * floorsCoeff;
-            const foundationTotal = foundationPrice * area;
-            const roofTotal = roofPrice * area;
-            const insulationTotal = insulationPrice * area * 2;
-            const facadeTotal = facadePrice * area * 0.5;
-            const interiorTotal = interiorPrice * area;
-
-            const total = wallsTotal + foundationTotal + roofTotal + insulationTotal + 
-                         facadeTotal + windowsPrice + engineeringPrice + heatingPrice + 
-                         interiorTotal + projectPrice + extraRoomsTotal + landscapeTotal;
-
-            // Обновление сметы
-            document.getElementById('summaryWalls').textContent = Math.round(wallsTotal).toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('summaryFoundation').textContent = Math.round(foundationTotal).toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('summaryRoof').textContent = Math.round(roofTotal).toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('summaryInterior').textContent = Math.round(interiorTotal + insulationTotal + facadeTotal).toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('summaryEngineering').textContent = Math.round(engineeringPrice + heatingPrice + windowsPrice).toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('summaryExtras').textContent = Math.round(projectPrice + extraRoomsTotal + landscapeTotal).toLocaleString('ru-RU') + ' ₽';
-
-            totalPriceDisplay.textContent = Math.round(total).toLocaleString('ru-RU') + ' ₽';
-
-            // Расчет срока строительства
-            const months = Math.ceil(area / 30) + 2;
-            document.getElementById('constructionTime').textContent = `${months}-${months + 2} месяцев`;
+    // Кровля
+    let roofPrice = 0;
+    document.querySelectorAll('#roofMaterial .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            roofPrice = parseInt(btn.getAttribute('data-value'));
         }
+    });
 
-        // Инициализация
-        areaRange.addEventListener('input', updateTotal);
-        setupToggleGroup(document.getElementById('floorsType'));
-        setupToggleGroup(document.getElementById('wallMaterial'));
-        setupToggleGroup(document.getElementById('foundationType'));
-        setupToggleGroup(document.getElementById('roofMaterial'));
-        setupToggleGroup(document.getElementById('insulationType'));
-        setupToggleGroup(document.getElementById('facadeType'));
-        setupToggleGroup(document.getElementById('windowsType'));
-        setupToggleGroup(document.getElementById('engineeringType'));
-        setupToggleGroup(document.getElementById('heatingType'));
-        setupToggleGroup(document.getElementById('interiorType'));
-        setupToggleGroup(document.getElementById('projectType'));
-        
-        setupMultipleChoice(document.getElementById('extraRooms'));
-        setupMultipleChoice(document.getElementById('landscapeOptions'));
+    // Утепление
+    let insulationPrice = 0;
+    document.querySelectorAll('#insulationType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            insulationPrice = parseInt(btn.getAttribute('data-value'));
+        }
+    });
 
-        // Кнопки действий
-        document.getElementById('sendRequest').addEventListener('click', function() {
-            const total = totalPriceDisplay.textContent;
-            const area = areaRange.value;
-            
-            alert(`✅ Заявка принята!\n\n💰 Стоимость: ${total}\n📐 Площадь: ${area} м²\n\n📞 Мы свяжемся с вами в течение 15 минут для уточнения деталей и составления точной сметы.`);
-        });
+    // Фасад
+    let facadePrice = 0;
+    document.querySelectorAll('#facadeType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            facadePrice = parseInt(btn.getAttribute('data-value'));
+        }
+    });
 
-        document.getElementById('saveConfig').addEventListener('click', function() {
-            alert('💾 Конфигурация сохранена!\n\nВы можете вернуться к ней позже или сравнить с другими вариантами.');
-        });
+    // Окна
+    let windowsPrice = 0;
+    document.querySelectorAll('#windowsType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            windowsPrice = parseInt(btn.getAttribute('data-value'));
+        }
+    });
 
-        // Первоначальный расчет
-        window.onload = updateTotal;
+    // Инженерия
+    let engineeringPrice = 0;
+    document.querySelectorAll('#engineeringType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            engineeringPrice = parseInt(btn.getAttribute('data-value'));
+        }
+    });
+
+    // Отопление
+    let heatingPrice = 0;
+    document.querySelectorAll('#heatingType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            heatingPrice = parseInt(btn.getAttribute('data-value'));
+        }
+    });
+
+    // Внутренняя отделка
+    let interiorPrice = 0;
+    document.querySelectorAll('#interiorType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            interiorPrice = parseInt(btn.getAttribute('data-value'));
+        }
+    });
+
+    // Проектирование
+    let projectPrice = 0;
+    document.querySelectorAll('#projectType .option-button').forEach(btn => {
+        if (btn.classList.contains('active')) {
+            projectPrice = parseInt(btn.getAttribute('data-value'));
+        }
+    });
+
+    // Дополнительные помещения
+    let extraRoomsTotal = 0;
+    document.querySelectorAll('#extraRooms .extra-option').forEach(btn => {
+        if (btn.getAttribute('data-checked') === 'true') {
+            extraRoomsTotal += parseInt(btn.getAttribute('data-value'));
+        }
+    });
+
+    // Ландшафт
+    let landscapeTotal = 0;
+    document.querySelectorAll('#landscapeOptions .extra-option').forEach(btn => {
+        if (btn.getAttribute('data-checked') === 'true') {
+            landscapeTotal += parseInt(btn.getAttribute('data-value'));
+        }
+    });
+
+    // Расчёты
+    const wallsTotal = wallPrice * area * floorsCoeff;
+    const foundationTotal = foundationPrice * area;
+    const roofTotal = roofPrice * area;
+    const insulationTotal = insulationPrice * area * 2;
+    const facadeTotal = facadePrice * area * 0.5;
+    const interiorTotal = interiorPrice * area;
+
+    const total = wallsTotal + foundationTotal + roofTotal + insulationTotal + 
+                  facadeTotal + windowsPrice + engineeringPrice + heatingPrice + 
+                  interiorTotal + projectPrice + extraRoomsTotal + landscapeTotal;
+
+    // Обновление сметы
+    document.getElementById('summaryWalls').textContent = Math.round(wallsTotal).toLocaleString('ru-RU') + ' ₽';
+    document.getElementById('summaryFoundation').textContent = Math.round(foundationTotal).toLocaleString('ru-RU') + ' ₽';
+    document.getElementById('summaryRoof').textContent = Math.round(roofTotal).toLocaleString('ru-RU') + ' ₽';
+    document.getElementById('summaryInterior').textContent = Math.round(interiorTotal + insulationTotal + facadeTotal).toLocaleString('ru-RU') + ' ₽';
+    document.getElementById('summaryEngineering').textContent = Math.round(engineeringPrice + heatingPrice + windowsPrice).toLocaleString('ru-RU') + ' ₽';
+    document.getElementById('summaryExtras').textContent = Math.round(projectPrice + extraRoomsTotal + landscapeTotal).toLocaleString('ru-RU') + ' ₽';
+
+    totalPriceDisplay.textContent = Math.round(total).toLocaleString('ru-RU') + ' ₽';
+
+    // Расчет срока строительства
+    const months = Math.ceil(area / 30) + 2;
+    document.getElementById('constructionTime').textContent = `${months}-${months + 2} месяцев`;
+}
+
+// Инициализация
+areaRange.addEventListener('input', updateTotal);
+setupToggleGroup(document.getElementById('floorsType'));
+setupToggleGroup(document.getElementById('wallMaterial'));
+setupToggleGroup(document.getElementById('foundationType'));
+setupToggleGroup(document.getElementById('roofMaterial'));
+setupToggleGroup(document.getElementById('insulationType'));
+setupToggleGroup(document.getElementById('facadeType'));
+setupToggleGroup(document.getElementById('windowsType'));
+setupToggleGroup(document.getElementById('engineeringType'));
+setupToggleGroup(document.getElementById('heatingType'));
+setupToggleGroup(document.getElementById('interiorType'));
+setupToggleGroup(document.getElementById('projectType'));
+
+setupMultipleChoice(document.getElementById('extraRooms'));
+setupMultipleChoice(document.getElementById('landscapeOptions'));
+
+// Кнопки действий
+document.getElementById('sendRequest').addEventListener('click', function() {
+    const total = totalPriceDisplay.textContent;
+    const area = areaRange.value;
+    
+    alert(`✅ Заявка принята!\n\n💰 Стоимость: ${total}\n📐 Площадь: ${area} м²\n\n📞 Мы свяжемся с вами в течение 15 минут для уточнения деталей и составления точной сметы.`);
+});
+
+document.getElementById('saveConfig').addEventListener('click', function() {
+    alert('💾 Конфигурация сохранена!\n\nВы можете вернуться к ней позже или сравнить с другими вариантами.');
+});
+
+// Первоначальный расчет
+window.onload = updateTotal;
+
 // === ЗАДАНИЕ 4: РАСЧЁТ СРОКА СТРОИТЕЛЬСТВА ===
 document.getElementById('calculateTime')?.addEventListener('click', function() {
     // Получаем значения
@@ -1457,43 +1239,5 @@ function updateProgressBar(selector, percent, text) {
         }, 50);
     }
 }
-// Сохранение заявки в кабинет
-document.getElementById('sendRequest')?.addEventListener('click', function() {
-    const email = localStorage.getItem('currentUser');
-    if (email) {
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        const user = users[email];
-        const date = new Date().toLocaleDateString('ru-RU');
-        const total = document.getElementById('totalPrice')?.textContent || '—';
-        user.requests.push({ title: `Заявка на дом ${total}`, date });
-        localStorage.setItem('users', JSON.stringify(users));
-        alert('✅ Заявка сохранена в личном кабинете!');
-    }
-    // оригинальное поведение
-    alert(`✅ Заявка принята!\n💰 Стоимость: ${total}\n📞 Мы свяжемся с вами в течение 15 минут.`);
-});
-
-// Кнопка сохранения конфигурации — уже есть в вашем коде. Добавьте обработчик:
-document.getElementById('saveConfig')?.addEventListener('click', function() {
-    const email = localStorage.getItem('currentUser');
-    if (!email) return alert('Войдите в личный кабинет, чтобы сохранять проекты');
-    
-    // Получаем параметры
-    const area = areaRange.value + ' м²';
-    let wallType = '—';
-    document.querySelectorAll('#wallMaterial .option-button').forEach(btn => {
-        if (btn.classList.contains('active')) wallType = btn.querySelector('div').textContent;
-    });
-    const total = document.getElementById('totalPrice').textContent;
-    const date = new Date().toLocaleDateString('ru-RU');
-
-    // Сохраняем
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    const user = users[email];
-    user.configs.push({ area, wallType, total, date });
-    localStorage.setItem('users', JSON.stringify(users));
-    alert('💾 Конфигурация сохранена в личном кабинете!');
-});
-    </script>
-</body>
-</html>
+</script>
+{% endblock %}

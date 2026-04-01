@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Услуги - Надёжный дом</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #007bff;
+            --accent-color: #ff6b35;
+            --transition: all 0.3s ease;
+        }
+
+        /* ── Боковое меню ── */
+        .sidebar {
+            position: fixed; top: 0; left: -300px;
+            width: 300px; height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #0d1f3d 100%);
+            color: white; z-index: 1050;
+            transition: var(--transition);
+            box-shadow: 5px 0 25px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+        .sidebar.active { left: 0; }
+        .sidebar-header {
+            padding: 30px 25px; text-align: center;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo { font-size: 1.8em; font-weight: bold; margin-bottom: 10px; }
+        .logo-subtitle { opacity: 0.8; font-size: 0.9em; }
+        .sidebar-menu { list-style: none; padding: 20px 0; }
+        .sidebar-menu li { margin: 5px 15px; }
+        .sidebar-menu a {
+            display: flex; align-items: center;
+            padding: 15px 20px; color: white; text-decoration: none;
+            border-radius: 10px; transition: var(--transition); font-weight: 500;
+        }
+        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
+        .sidebar-menu a.active { background: var(--secondary-color); box-shadow: 0 4px 15px rgba(0,123,255,0.4); }
+        .sidebar-menu a i { font-size: 1.3em; margin-right: 15px; }
+
+        /* Счётчик корзины в меню */
+        .cart-badge {
+            background: var(--accent-color);
+            color: white; border-radius: 50%;
+            width: 22px; height: 22px;
+            font-size: 0.75em; font-weight: bold;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-left: auto;
+        }
+
+        .overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1040; display: none;
+        }
+        .overlay.active { display: block; }
+
+        .menu-toggle {
+            position: fixed; top: 20px; left: 20px; z-index: 1045;
+            background: var(--secondary-color); color: white;
+            border: none; width: 50px; height: 50px;
+            border-radius: 50%; font-size: 1.3em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: var(--transition); cursor: pointer;
+        }
+        .menu-toggle:hover { background: var(--accent-color); transform: scale(1.1); }
+
+        /* ── Плавающая кнопка корзины ── */
+        .cart-float {
+            position: fixed; bottom: 100px; right: 30px;
+            background: var(--accent-color); color: white;
+            border: none; border-radius: 50px;
+            padding: 14px 22px; font-size: 1em; font-weight: bold;
+            box-shadow: 0 4px 20px rgba(255,107,53,0.4);
+            z-index: 998; cursor: pointer;
+            transition: var(--transition);
+            display: none; align-items: center; gap: 8px;
+        }
+        .cart-float.has-items { display: flex; }
+        .cart-float:hover { transform: scale(1.05); box-shadow: 0 6px 25px rgba(255,107,53,0.5); }
+
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 60px; height: 60px;
+            background: var(--secondary-color); color: white;
+            border: none; border-radius: 50%; font-size: 1.5em;
+            box-shadow: 0 4px 20px rgba(0,123,255,0.3);
+            z-index: 999; transition: var(--transition);
+            opacity: 0; visibility: hidden; cursor: pointer;
+        }
+        .back-to-top.show { opacity: 1; visibility: visible; }
+        .back-to-top:hover { background: var(--accent-color); transform: translateY(-5px) scale(1.1); }
+
+        /* ── Section title ── */
+        .section-title {
+            position: relative; display: inline-block;
+        }
+        .section-title::after {
+            content: ''; display: block;
+            width: 80px; height: 4px;
+            background: var(--accent-color);
+            margin: 15px auto; border-radius: 2px;
+        }
+
+        /* ── Карточки услуг ── */
+        .service-card {
+            transition: var(--transition);
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-bottom: 4px solid var(--secondary-color);
+            height: 100%;
+            display: flex; flex-direction: column;
+        }
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        .service-card .card-body {
+            flex: 1; display: flex; flex-direction: column;
+        }
+        .service-image-container {
+            width: 100%; height: 190px; overflow: hidden;
+        }
+        .service-image-container img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .service-card:hover .service-image-container img { transform: scale(1.08); }
+
+        /* Ценник */
+        .price-tag {
+            display: flex; align-items: baseline; gap: 6px;
+            margin: 10px 0 14px;
+        }
+        .price-from { font-size: 0.8em; color: #888; }
+        .price-value {
+            font-size: 1.5em; font-weight: 800;
+            color: var(--primary-color);
+        }
+        .price-unit { font-size: 0.85em; color: #666; }
+
+        /* Кнопки карточки */
+        .card-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 12px; }
+
+        .btn-order {
+            flex: 1;
+            background: var(--accent-color); color: white;
+            border: none; border-radius: 8px;
+            padding: 10px 14px; font-weight: 600;
+            font-size: 0.9em; transition: var(--transition); cursor: pointer;
+        }
+        .btn-order:hover { background: #e05c2a; transform: translateY(-1px); }
+        .btn-order.added {
+            background: #22c55e;
+        }
+        .btn-detail {
+            background: transparent; color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px; padding: 10px 14px;
+            font-weight: 600; font-size: 0.9em;
+            transition: var(--transition); text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-detail:hover {
+            background: var(--secondary-color); color: white;
+        }
+
+        /* Уведомление «Добавлено» */
+        .toast-added {
+            position: fixed; top: 80px; right: 20px;
+            background: #22c55e; color: white;
+            padding: 12px 22px; border-radius: 10px;
+            font-weight: 600; font-size: 0.95em;
+            box-shadow: 0 4px 15px rgba(34,197,94,0.4);
+            z-index: 2000; opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .toast-added.show { opacity: 1; }
+
+        /* Promo Banner */
+        .promo-banner {
+            background: linear-gradient(45deg, #ff6b35, #ff8e53);
+            color: white; padding: 40px;
+            border-radius: 15px; text-align: center;
+        }
+        .promo-button {
+            background: white; color: var(--accent-color);
+            padding: 12px 30px; border-radius: 25px;
+            text-decoration: none; font-weight: bold;
+            transition: var(--transition); display: inline-block;
+        }
+        .promo-button:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        footer { background: var(--primary-color); color: white; padding: 30px 0; }
+        .social-link {
+            display: inline-block; width: 40px; height: 40px;
+            border-radius: 50%; overflow: hidden; transition: var(--transition);
+        }
+        .social-link:hover { transform: scale(1.2); }
+        .social-link img { width: 100%; height: 100%; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<!-- Уведомление -->
+<div class="toast-added" id="toastAdded">✅ Услуга добавлена в корзину!</div>
+
+<!-- Боковое меню -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">🏠 Надёжный дом</div>
+        <div class="logo-subtitle">Строим для жизни</div>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="/"><i class="fas fa-home"></i> Главная</a></li>
+        <li><a href="/uslugi/" class="active"><i class="fas fa-tools"></i> Услуги</a></li>
+        <li><a href="/portfolio/"><i class="fas fa-folder"></i> Портфолио</a></li>
+        <li><a href="/prices/"><i class="fas fa-money-bill-wave"></i> Цены (Прайс)</a></li>
+        <li><a href="/kalkulyator/"><i class="fas fa-calculator"></i> Конструктор проекта</a></li>
+        <li><a href="/cart/"><i class="fas fa-shopping-cart"></i> Корзина <span class="cart-badge" id="cartBadgeMenu">0</span></a></li>
+        <li><a href="/cabinet/"><i class="fas fa-user"></i> Личный кабинет</a></li>
+        <li><a href="/reviews/"><i class="fas fa-comments"></i> Отзывы</a></li>
+        <li><a href="/kontakty/"><i class="fas fa-phone"></i> Контакты</a></li>
+    </ul>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<button class="menu-toggle" id="menuToggle">☰</button>
+
+<!-- Плавающая кнопка корзины -->
+<button class="cart-float" id="cartFloat" onclick="location.href='cart.html'">
+    <i class="fas fa-shopping-cart"></i>
+    Корзина (<span id="cartFloatCount">0</span>)
+</button>
+
+<!-- Основной контент -->
+<div class="container-fluid px-3 px-md-5 py-4">
+
+    <h1 class="section-title text-center w-100 mb-2">Каталог строительных услуг</h1>
+    <p class="text-center text-muted mb-5">От фундамента до финишной отделки — выберите услугу и добавьте в корзину для оформления заявки</p>
+
+    <!-- Сетка услуг -->
+    <div class="row g-4 mb-5">
+
+        <!-- Карточка 1 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                <div class="service-image-container">
+                    <img src="{% static 'img/build_house.jpg' %}" alt="Строительство домов">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Строительство домов под ключ</h5>
+                    <p class="card-text text-muted small">Полный цикл: проектирование, коммуникации, отделка. Гарантия 10 лет.</p>
+                    <div class="price-tag">
+                        <span class="price-from">от</span>
+                        <span class="price-value">2 200 000 ₽</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-order" onclick="addToCart(this, 'Строительство домов под ключ', 'от 2 200 000 ₽')">
+                            🛒 В корзину
+                        </button>
+                        <a href="/prices/" class="btn-detail">Детали</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточка 2 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                <div class="service-image-container">
+                    <img src="{% static 'img/repair.jpg' %}" alt="Ремонт">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Капитальный ремонт</h5>
+                    <p class="card-text text-muted small">Внутренняя и внешняя отделка. Работаем строго по дизайн-проекту.</p>
+                    <div class="price-tag">
+                        <span class="price-from">от</span>
+                        <span class="price-value">950 000 ₽</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-order" onclick="addToCart(this, 'Капитальный ремонт', 'от 950 000 ₽')">
+                            🛒 В корзину
+                        </button>
+                        <a href="/prices/" class="btn-detail">Детали</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточка 3 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                <div class="service-image-container">
+                    <img src="{% static 'img/design.jpg' %}" alt="Проектирование">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Архитектурное проектирование</h5>
+                    <p class="card-text text-muted small">Индивидуальный проект с 3D-моделью и полной сметной документацией.</p>
+                    <div class="price-tag">
+                        <span class="price-from">от</span>
+                        <span class="price-value">120 000 ₽</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-order" onclick="addToCart(this, 'Архитектурное проектирование', 'от 120 000 ₽')">
+                            🛒 В корзину
+                        </button>
+                        <a href="/prices/" class="btn-detail">Детали</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточка 4 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                <div class="service-image-container">
+                    <img src="{% static 'img/roof.jpg' %}" alt="Кровля">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Монтаж и ремонт кровли</h5>
+                    <p class="card-text text-muted small">Скатные и плоские крыши. Металлочерепица, мягкая кровля, профнастил.</p>
+                    <div class="price-tag">
+                        <span class="price-from">от</span>
+                        <span class="price-value">350 ₽/м²</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-order" onclick="addToCart(this, 'Монтаж и ремонт кровли', 'от 350 ₽/м²')">
+                            🛒 В корзину
+                        </button>
+                        <a href="/prices/" class="btn-detail">Детали</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточка 5 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                <div class="service-image-container">
+                    <img src="{% static 'img/foundation.jpg' %}" alt="Фундамент">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Устройство фундамента</h5>
+                    <p class="card-text text-muted small">Ленточные, плитные и свайные фундаменты. Геологические изыскания.</p>
+                    <div class="price-tag">
+                        <span class="price-from">от</span>
+                        <span class="price-value">280 000 ₽</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-order" onclick="addToCart(this, 'Устройство фундамента', 'от 280 000 ₽')">
+                            🛒 В корзину
+                        </button>
+                        <a href="/prices/" class="btn-detail">Детали</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточка 6 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                <div class="service-image-container">
+                    <img src="{% static 'img/utilities.jpg' %}" alt="Коммуникации">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Электрика, сантехника, отопление</h5>
+                    <p class="card-text text-muted small">Полный монтаж инженерных систем. Котлы, насосы, разводка, канализация.</p>
+                    <div class="price-tag">
+                        <span class="price-from">от</span>
+                        <span class="price-value">180 000 ₽</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-order" onclick="addToCart(this, 'Электрика, сантехника, отопление', 'от 180 000 ₽')">
+                            🛒 В корзину
+                        </button>
+                        <a href="/prices/" class="btn-detail">Детали</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточка 7 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                <div class="service-image-container">
+                    <img src="{% static 'img/landscape.jpg' %}" alt="Ландшафт">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Ландшафтный дизайн</h5>
+                    <p class="card-text text-muted small">Дорожки, освещение, озеленение, системы полива и дренажа.</p>
+                    <div class="price-tag">
+                        <span class="price-from">от</span>
+                        <span class="price-value">85 000 ₽</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-order" onclick="addToCart(this, 'Ландшафтный дизайн', 'от 85 000 ₽')">
+                            🛒 В корзину
+                        </button>
+                        <a href="/prices/" class="btn-detail">Детали</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточка 8 -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                <div class="service-image-container">
+                    <img src="{% static 'img/demolition.jpg' %}" alt="Демонтаж">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Снос и демонтажные работы</h5>
+                    <p class="card-text text-muted small">Безопасный снос, вывоз мусора. Подготовка участка к новому строительству.</p>
+                    <div class="price-tag">
+                        <span class="price-from">от</span>
+                        <span class="price-value">65 000 ₽</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-order" onclick="addToCart(this, 'Снос и демонтажные работы', 'от 65 000 ₽')">
+                            🛒 В корзину
+                        </button>
+                        <a href="/prices/" class="btn-detail">Детали</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /row -->
+
+    <!-- Promo Banner -->
+    <section class="promo-banner mb-5">
+        <h2 class="display-6 fw-bold mb-3">Хотите рассчитать точную стоимость?</h2>
+        <p class="lead mb-4">Воспользуйтесь нашим интерактивным калькулятором — получите ориентировочную смету за 2 минуты.</p>
+        <a href="/kalkulyator/" class="promo-button">Перейти к калькулятору</a>
+    </section>
+
+</div><!-- /container -->
+
+<!-- Footer -->
+<footer class="text-center mt-2">
+    <div class="container">
+        <div class="d-flex justify-content-center gap-3 mb-3">
+            <a href="https://vk.com" class="social-link"><img src="{% static 'img/vk.jpg' %}" alt="ВКонтакте"></a>
+            <a href="https://ok.ru" class="social-link"><img src="{% static 'img/ok.jpg' %}" alt="Одноклассники"></a>
+            <a href="https://t.me" class="social-link"><img src="{% static 'img/tg.jpg' %}" alt="Telegram"></a>
+        </div>
+        <p class="mb-2">🏗️ Надёжный дом — Строим для жизни</p>
+        <p class="text-white-50">© 2025 Все права защищены</p>
+    </div>
+</footer>
+
+<button class="back-to-top" id="backToTop">↑</button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Меню ──────────────────────────────────────────────
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    const overlay = document.getElementById('overlay');
+    function toggleMenu() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+    menuToggle.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) toggleMenu();
+        });
+    });
+
+    // ── Наверх ────────────────────────────────────────────
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+        backToTop.classList.toggle('show', window.pageYOffset > 300);
+    });
+    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    // ── Корзина ───────────────────────────────────────────
+    // Загружаем корзину из localStorage
+    function getCart() {
+        return JSON.parse(localStorage.getItem('nd_cart') || '[]');
+    }
+    function saveCart(cart) {
+        localStorage.setItem('nd_cart', JSON.stringify(cart));
+    }
+    function updateCartUI() {
+        const count = getCart().length;
+        document.getElementById('cartBadgeMenu').textContent = count;
+        document.getElementById('cartFloatCount').textContent = count;
+        const floatBtn = document.getElementById('cartFloat');
+        if (count > 0) {
+            floatBtn.classList.add('has-items');
+        } else {
+            floatBtn.classList.remove('has-items');
+        }
+    }
+
+    function addToCart(btn, name, price) {
+        const cart = getCart();
+        // Не добавляем дубликаты
+        if (!cart.find(item => item.name === name)) {
+            cart.push({ name, price, id: Date.now() });
+            saveCart(cart);
+        }
+        // Меняем кнопку
+        btn.textContent = '✅ Добавлено';
+        btn.classList.add('added');
+        btn.disabled = true;
+        // Показываем уведомление
+        const toast = document.getElementById('toastAdded');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+        // Обновляем счётчики
+        updateCartUI();
+    }
+
+    // При загрузке — восстанавливаем состояние кнопок
+    function restoreButtons() {
+        const cart = getCart();
+        document.querySelectorAll('.btn-order').forEach(btn => {
+            const name = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
+            if (cart.find(item => item.name === name)) {
+                btn.textContent = '✅ Добавлено';
+                btn.classList.add('added');
+                btn.disabled = true;
+            }
+        });
+    }
+
+    updateCartUI();
+    restoreButtons();
+</script>
+</body>
+</html>

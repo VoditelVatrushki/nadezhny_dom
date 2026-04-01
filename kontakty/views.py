@@ -1,3 +1,6 @@
 from django.shortcuts import render
-
-# Create your views here.
+ 
+ 
+def kontakty(request):
+    """Страница контактов и форма обратной связи"""
+    return render(request, 'kontakty.html')

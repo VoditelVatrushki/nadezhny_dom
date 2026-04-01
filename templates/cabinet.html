@@ -1,498 +1,312 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Личный кабинет - Надёжный дом</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #1a365d;
-            --secondary-color: #007bff;
-            --accent-color: #ff6b35;
-            --transition: all 0.3s ease;
-        }
-        /* Боковое меню — стандартное */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 300px;
-            height: 100vh;
-            background: linear-gradient(180deg, var(--primary-color) 0%, #0d1f3d 100%);
-            color: white;
-            z-index: 1050;
-            transition: var(--transition);
-            box-shadow: 5px 0 25px rgba(0,0,0,0.3);
-            overflow-y: auto;
-        }
-        .sidebar.active { left: 0; }
-        .sidebar-header {
-            padding: 30px 25px;
-            text-align: center;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .logo { font-size: 1.8em; font-weight: bold; margin-bottom: 10px; }
-        .logo-subtitle { opacity: 0.8; font-size: 0.9em; }
-        .sidebar-menu { list-style: none; padding: 20px 0; }
-        .sidebar-menu li { margin: 5px 15px; }
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
-        .sidebar-menu a.active { background: var(--secondary-color); box-shadow: 0 4px 15px rgba(0,123,255,0.4); }
-        .sidebar-menu a i { font-size: 1.3em; margin-right: 15px; }
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1040;
-            display: none;
-        }
-        .overlay.active { display: block; }
-        .menu-toggle {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1045;
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 1.3em;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: var(--transition);
-        }
-        .menu-toggle:hover { background: var(--accent-color); transform: scale(1.1); }
-        .section-title {
-            position: relative;
-            display: inline-block;
-        }
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 80px;
-            height: 4px;
-            background: var(--accent-color);
-            margin: 15px auto;
-            border-radius: 2px;
-        }
-        /* Стили кабинета */
-        .cabinet-container {
-            max-width: 900px;
-            margin: 30px auto;
-        }
-        .card-header h2 {
-            font-weight: 700;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #6c757d;
-        }
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #dee2e6;
-        }
-        .config-item, .request-item {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        .config-item:last-child, .request-item:last-child {
-            border-bottom: none;
-        }
-        .config-meta, .request-meta {
-            font-size: 0.85em;
-            color: #6c757d;
-        }
-        .config-title {
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        .btn-link-danger {
-            color: #dc3545;
-        }
-        .btn-link-danger:hover {
-            color: #a71e2a;
-            text-decoration: underline;
-        }
-        .back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 1.5em;
-            box-shadow: 0 4px 20px rgba(0, 123, 255, 0.3);
-            z-index: 999;
-            transition: var(--transition);
-            opacity: 0;
-            visibility: hidden;
-        }
-        .back-to-top.show { opacity: 1; visibility: visible; }
-        .back-to-top:hover { background: var(--accent-color); transform: translateY(-5px) scale(1.1); }
-        footer { background: var(--primary-color); color: white; padding: 30px 0; }
-        .social-link {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            overflow: hidden;
-            transition: var(--transition);
-        }
-        .social-link:hover { transform: scale(1.2); }
-        .social-link img { width: 100%; height: 100%; object-fit: cover; }
-    
-        /* Счётчик корзины в меню */
-        .cart-badge {
-            background: var(--accent-color);
-            color: white; border-radius: 50%;
-            width: 22px; height: 22px;
-            font-size: 0.75em; font-weight: bold;
-            display: inline-flex; align-items: center; justify-content: center;
-            margin-left: auto;
-        }
-    </style>
-</head>
-<body>
-    <!-- Боковое меню -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">🏠 Надёжный дом</div>
-            <div class="logo-subtitle">Строим для жизни</div>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Личный кабинет — Надёжный дом{% endblock %}
+{% block active_cabinet %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.cabinet-container {
+    max-width: 900px;
+    margin: 30px auto;
+}
+.card-header h2 {
+    font-weight: 700;
+}
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: #dee2e6;
+}
+.config-item, .request-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+.config-item:last-child, .request-item:last-child {
+    border-bottom: none;
+}
+.config-meta, .request-meta {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+.config-title {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+.btn-link-danger {
+    color: #dc3545;
+}
+.btn-link-danger:hover {
+    color: #a71e2a;
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-5">
+    <div class="cabinet-container">
+        <h1 class="section-title text-center w-100 mb-4">Личный кабинет</h1>
+
+        <!-- Форма входа/регистрации -->
+        <div id="authSection" class="card mb-4 shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="mb-0 text-center" id="authTitle">Вход в личный кабинет</h2>
+            </div>
+            <div class="card-body">
+                <!-- Вход -->
+                <div id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="loginPassword" required>
+                    </div>
+                    <button class="btn btn-primary w-100 mb-3" id="doLogin">Войти</button>
+                    <div class="text-center">
+                        <button class="btn btn-link" id="switchToRegister">Регистрация</button>
+                    </div>
+                </div>
+
+                <!-- Регистрация -->
+                <div id="registerForm" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label">ФИО</label>
+                        <input type="text" class="form-control" id="regName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="regEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль (не менее 6 символов)</label>
+                        <input type="password" class="form-control" id="regPassword" minlength="6" required>
+                    </div>
+                    <button class="btn btn-success w-100 mb-3" id="doRegister">Зарегистрироваться</button>
+                    <div class="text-center">
+                        <button class="btn btn-link" id="switchToLogin">Уже есть аккаунт?</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <ul class="sidebar-menu">
-    <li><a href="index.html" ><i class="fas fa-home"></i> Главная</a></li>
-    <li><a href="uslugi.html" ><i class="fas fa-tools"></i> Услуги</a></li>
-    <li><a href="portfolio.html" ><i class="fas fa-folder"></i> Портфолио</a></li>
-    <li><a href="prices.html" ><i class="fas fa-money-bill-wave"></i> Цены (Прайс)</a></li>
-    <li><a href="kalkulyator.html" ><i class="fas fa-calculator"></i> Конструктор проекта</a></li>
-    <li><a href="cart.html" ><i class="fas fa-shopping-cart"></i> Корзина <span class="cart-badge" id="cartBadgeMenu">0</span></a></li>
-    <li><a href="cabinet.html" class="active"><i class="fas fa-user"></i> Личный кабинет</a></li>
-    <li><a href="reviews.html" ><i class="fas fa-comments"></i> Отзывы</a></li>
-    <li><a href="kontakty.html" ><i class="fas fa-phone"></i> Контакты</a></li>
-</ul>
-    </div>
-    <div class="overlay" id="overlay"></div>
-    <button class="menu-toggle" id="menuToggle">☰</button>
 
-    <!-- Основной контент -->
-    <div class="container-fluid px-3 px-md-5">
-        <div class="cabinet-container">
-            <h1 class="section-title text-center w-100 mb-4">Личный кабинет</h1>
+        <!-- Кабинет (скрыт по умолчанию) -->
+        <div id="cabinetSection" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Привет, <span id="userNameDisplay">—</span>!</h2>
+                <button class="btn btn-outline-danger" id="doLogout"><i class="fas fa-sign-out-alt me-1"></i> Выйти</button>
+            </div>
 
-            <!-- Форма входа/регистрации -->
-            <div id="authSection" class="card mb-4 shadow-sm">
-                <div class="card-header bg-white">
-                    <h2 class="mb-0 text-center" id="authTitle">Вход в личный кабинет</h2>
+            <!-- Сохранённые конфигурации -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="fas fa-save me-2"></i>Сохранённые конфигурации</h3>
                 </div>
                 <div class="card-body">
-                    <!-- Вход -->
-                    <div id="loginForm">
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" id="loginEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Пароль</label>
-                            <input type="password" class="form-control" id="loginPassword" required>
-                        </div>
-                        <button class="btn btn-primary w-100 mb-3" id="doLogin">Войти</button>
-                        <div class="text-center">
-                            <button class="btn btn-link" id="switchToRegister">Регистрация</button>
-                        </div>
-                    </div>
-
-                    <!-- Регистрация -->
-                    <div id="registerForm" style="display:none;">
-                        <div class="mb-3">
-                            <label class="form-label">ФИО</label>
-                            <input type="text" class="form-control" id="regName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" id="regEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Пароль (не менее 6 символов)</label>
-                            <input type="password" class="form-control" id="regPassword" minlength="6" required>
-                        </div>
-                        <button class="btn btn-success w-100 mb-3" id="doRegister">Зарегистрироваться</button>
-                        <div class="text-center">
-                            <button class="btn btn-link" id="switchToLogin">Уже есть аккаунт?</button>
+                    <div id="configsList">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Нет сохранённых проектов</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Кабинет (скрыт по умолчанию) -->
-            <div id="cabinetSection" style="display:none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">Привет, <span id="userNameDisplay">—</span>!</h2>
-                    <button class="btn btn-outline-danger" id="doLogout"><i class="fas fa-sign-out-alt me-1"></i> Выйти</button>
+            <!-- Заявки -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="fas fa-envelope me-2"></i>Ваши заявки</h3>
                 </div>
-
-                <!-- Сохранённые конфигурации -->
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header">
-                        <h3 class="mb-0"><i class="fas fa-save me-2"></i>Сохранённые конфигурации</h3>
-                    </div>
-                    <div class="card-body">
-                        <div id="configsList">
-                            <div class="empty-state">
-                                <i class="fas fa-inbox"></i>
-                                <p>Нет сохранённых проектов</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Заявки -->
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header">
-                        <h3 class="mb-0"><i class="fas fa-envelope me-2"></i>Ваши заявки</h3>
-                    </div>
-                    <div class="card-body">
-                        <div id="requestsList">
-                            <div class="empty-state">
-                                <i class="fas fa-file-alt"></i>
-                                <p>Заявок пока нет</p>
-                            </div>
+                <div class="card-body">
+                    <div id="requestsList">
+                        <div class="empty-state">
+                            <i class="fas fa-file-alt"></i>
+                            <p>Заявок пока нет</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Footer -->
-    <footer class="text-center mt-5">
-        <div class="container">
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <a href="https://vk.com" class="social-link">
-                    <img src="img/vk.jpg" alt="ВКонтакте">
-                </a>
-                <a href="https://ok.ru" class="social-link">
-                    <img src="img/ok.jpg" alt="Одноклассники">
-                </a>
-                <a href="https://t.me" class="social-link">
-                    <img src="img/tg.jpg" alt="Telegram">
-                </a>
-            </div>
-            <p class="mb-2">🏠 Надёжный дом — Строим для жизни</p>
-            <p class="text-white-50">© 2025 Все права защищены</p>
-        </div>
-    </footer>
+<script>
+// Управление пользователями
+let currentUser = null;
 
-    <button class="back-to-top" id="backToTop">↑</button>
+function loadUsers() {
+    const users = localStorage.getItem('users');
+    if (!users) {
+        localStorage.setItem('users', JSON.stringify({}));
+        return {};
+    }
+    return JSON.parse(users);
+}
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // --- Общее управление меню (как во всех файлах)
-        const sidebar = document.getElementById('sidebar');
-        const menuToggle = document.getElementById('menuToggle');
-        const overlay = document.getElementById('overlay');
-        function toggleMenu() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-        menuToggle.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
-        document.querySelectorAll('.sidebar-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) toggleMenu();
-            });
-        });
-        // Кнопка "Наверх"
-        const backToTop = document.getElementById('backToTop');
-        window.addEventListener('scroll', () => {
-            backToTop.classList.toggle('show', window.pageYOffset > 300);
-        });
-        backToTop.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+function saveUsers(users) {
+    localStorage.setItem('users', JSON.stringify(users));
+}
 
-        // --- Кабинет
-        const authSection = document.getElementById('authSection');
-        const cabinetSection = document.getElementById('cabinetSection');
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const authTitle = document.getElementById('authTitle');
-        const userNameDisplay = document.getElementById('userNameDisplay');
-        const configsList = document.getElementById('configsList');
-        const requestsList = document.getElementById('requestsList');
-
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', checkAuth);
-
-        // Переключение форм
-        document.getElementById('switchToRegister').addEventListener('click', () => {
-            loginForm.style.display = 'none';
-            registerForm.style.display = 'block';
-            authTitle.textContent = 'Регистрация';
-        });
-        document.getElementById('switchToLogin').addEventListener('click', () => {
-            registerForm.style.display = 'none';
-            loginForm.style.display = 'block';
-            authTitle.textContent = 'Вход в личный кабинет';
-        });
-
-        // Регистрация
-        document.getElementById('doRegister').addEventListener('click', () => {
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const pass = document.getElementById('regPassword').value;
-
-            if (!name || !email || !pass) return alert('Заполните все поля');
-            if (pass.length < 6) return alert('Пароль должен быть не менее 6 символов');
-
-            let users = JSON.parse(localStorage.getItem('users') || '{}');
-            if (users[email]) return alert('Пользователь с таким email уже существует');
-
-            users[email] = { name, password: pass, configs: [], requests: [] };
-            localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('currentUser', email);
-
-            showCabinet();
-        });
-
-        // Вход
-        document.getElementById('doLogin').addEventListener('click', () => {
-            const email = document.getElementById('loginEmail').value.trim();
-            const pass = document.getElementById('loginPassword').value;
-
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            const user = users[email];
-
-            if (!user || user.password !== pass) return alert('Неверный email или пароль');
-
-            localStorage.setItem('currentUser', email);
-            showCabinet();
-        });
-
-        // Выход
-        document.getElementById('doLogout').addEventListener('click', () => {
-            localStorage.removeItem('currentUser');
-            authSection.style.display = 'block';
-            cabinetSection.style.display = 'none';
-            loginForm.style.display = 'block';
-            registerForm.style.display = 'none';
-            authTitle.textContent = 'Вход в личный кабинет';
-        });
-
-        // Показ кабинета
-        function showCabinet() {
-            const email = localStorage.getItem('currentUser');
-            if (!email) return;
-
-            let users = JSON.parse(localStorage.getItem('users') || '{}');
-            let user = users[email];
-
-            userNameDisplay.textContent = user.name;
-            authSection.style.display = 'none';
-            cabinetSection.style.display = 'block';
-
-            renderConfigs(user.configs);
-            renderRequests(user.requests);
-        }
-
-        // Проверка авторизации
-        function checkAuth() {
-            const email = localStorage.getItem('currentUser');
-            if (email) {
-                showCabinet();
-            }
-        }
-
-        // Рендер сохранённых конфигураций
-        function renderConfigs(configs) {
-            if (configs.length === 0) {
-                configsList.innerHTML = `<div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p>Нет сохранённых проектов</p>
-                </div>`;
-                return;
-            }
-            let html = '';
-            configs.forEach((cfg, i) => {
-                html += `
+function updateCabinetUI() {
+    const email = localStorage.getItem('currentUser');
+    if (email) {
+        const users = loadUsers();
+        currentUser = users[email];
+        if (currentUser) {
+            document.getElementById('userNameDisplay').textContent = currentUser.name;
+            
+            // Отображаем конфигурации
+            const configsList = document.getElementById('configsList');
+            if (currentUser.configs && currentUser.configs.length > 0) {
+                configsList.innerHTML = currentUser.configs.map((config, index) => `
                     <div class="config-item">
-                        <div class="config-title">Проект #${configs.length - i}</div>
-                        <div class="config-meta">${cfg.date} • ${cfg.area} м² • ${cfg.wallType}</div>
-                        <div><strong>Итого:</strong> ${cfg.total} ₽</div>
-                    </div>`;
-            });
-            configsList.innerHTML = html;
-        }
-
-        // Рендер заявок
-        function renderRequests(requests) {
-            if (requests.length === 0) {
-                requestsList.innerHTML = `<div class="empty-state">
-                    <i class="fas fa-file-alt"></i>
-                    <p>Заявок пока нет</p>
-                </div>`;
-                return;
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="config-title">${config.area} | ${config.wallType}</div>
+                                <div class="config-meta">${config.date}</div>
+                                <div class="text-success mt-1">${config.total}</div>
+                            </div>
+                            <button class="btn btn-sm btn-link-danger" onclick="deleteConfig(${index})">Удалить</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                configsList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Нет сохранённых проектов</p></div>';
             }
-            let html = '';
-            requests.forEach((req, i) => {
-                html += `
+            
+            // Отображаем заявки
+            const requestsList = document.getElementById('requestsList');
+            if (currentUser.requests && currentUser.requests.length > 0) {
+                requestsList.innerHTML = currentUser.requests.map((req, index) => `
                     <div class="request-item">
-                        <div class="config-title">${req.title}</div>
-                        <div class="request-meta">${req.date}</div>
-                    </div>`;
-            });
-            requestsList.innerHTML = html;
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="config-title">${req.title}</div>
+                                <div class="config-meta">${req.date}</div>
+                            </div>
+                            <button class="btn btn-sm btn-link-danger" onclick="deleteRequest(${index})">Удалить</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                requestsList.innerHTML = '<div class="empty-state"><i class="fas fa-file-alt"></i><p>Заявок пока нет</p></div>';
+            }
+            
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('cabinetSection').style.display = 'block';
         }
+    } else {
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('cabinetSection').style.display = 'none';
+    }
+}
 
-        // ——— ИНТЕГРАЦИЯ: перехват заявок и сохранение конфигураций ———
-        // Чтобы это работало на других страницах (например, в kalkulyator.html),
-        // туда нужно добавить:
-        // document.getElementById('sendRequest')?.addEventListener('click', saveCurrentRequest);
+function deleteConfig(index) {
+    const email = localStorage.getItem('currentUser');
+    if (email) {
+        const users = loadUsers();
+        if (users[email] && users[email].configs) {
+            users[email].configs.splice(index, 1);
+            saveUsers(users);
+            updateCabinetUI();
+        }
+    }
+}
 
-        // Пример функции для интеграции (можно вставить в kalkulyator.html):
-        // function saveCurrentRequest() {
-        //     const email = localStorage.getItem('currentUser');
-        //     if (!email) return;
-        //     let users = JSON.parse(localStorage.getItem('users') || '{}');
-        //     let user = users[email];
-        //     const date = new Date().toLocaleDateString('ru-RU');
-        //     const total = document.getElementById('totalPrice')?.textContent || '—';
-        //     user.requests.push({ title: `Заявка на дом ${total}`, date });
-        //     localStorage.setItem('users', JSON.stringify(users));
-        //     if (window.cabinetUpdate) cabinetUpdate(); // опционально: обновить кабинет, если открыт
-        // }
+function deleteRequest(index) {
+    const email = localStorage.getItem('currentUser');
+    if (email) {
+        const users = loadUsers();
+        if (users[email] && users[email].requests) {
+            users[email].requests.splice(index, 1);
+            saveUsers(users);
+            updateCabinetUI();
+        }
+    }
+}
 
-        // Для сохранения конфигурации из калькулятора — аналогично:
-        // function saveCurrentConfig() {
-        //     const email = localStorage.getItem('currentUser');
-        //     if (!email) return;
-        //     /* ...собираем текущие параметры... */
-        //     user.configs.push({ area, wallType, total, date });
-        // }
+// Вход
+document.getElementById('doLogin').addEventListener('click', () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    const users = loadUsers();
+    if (users[email] && users[email].password === password) {
+        localStorage.setItem('currentUser', email);
+        updateCabinetUI();
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+    } else {
+        alert('Неверный email или пароль');
+    }
+});
 
-    </script>
-</body>
-</html>
+// Регистрация
+document.getElementById('doRegister').addEventListener('click', () => {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    
+    if (!name || !email || !password) {
+        alert('Заполните все поля');
+        return;
+    }
+    
+    if (password.length < 6) {
+        alert('Пароль должен быть не менее 6 символов');
+        return;
+    }
+    
+    const users = loadUsers();
+    if (users[email]) {
+        alert('Пользователь с таким email уже существует');
+        return;
+    }
+    
+    users[email] = {
+        name: name,
+        email: email,
+        password: password,
+        configs: [],
+        requests: []
+    };
+    saveUsers(users);
+    
+    localStorage.setItem('currentUser', email);
+    updateCabinetUI();
+    
+    document.getElementById('regName').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPassword').value = '';
+});
+
+// Выход
+document.getElementById('doLogout').addEventListener('click', () => {
+    localStorage.removeItem('currentUser');
+    updateCabinetUI();
+});
+
+// Переключение между формами
+document.getElementById('switchToRegister').addEventListener('click', () => {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('authTitle').textContent = 'Регистрация';
+});
+
+document.getElementById('switchToLogin').addEventListener('click', () => {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('authTitle').textContent = 'Вход в личный кабинет';
+});
+
+// Инициализация
+updateCabinetUI();
+</script>
+{% endblock %}

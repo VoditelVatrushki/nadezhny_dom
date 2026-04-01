@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ service.title }} — Надёжный дом{% endblock %}
+{% block active_uslugi %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .service-detail-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 60px 0;
+        border-radius: 0 0 30px 30px;
+        margin-bottom: 50px;
+    }
+    .service-detail-header h1 {
+        font-size: 2.5em;
+        font-weight: 800;
+        margin-bottom: 20px;
+    }
+    .service-detail-header .price-large {
+        font-size: 2em;
+        font-weight: 700;
+        margin: 20px 0;
+    }
+    .service-image-detail {
+        width: 100%;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    .service-description {
+        font-size: 1.1em;
+        line-height: 1.6;
+        color: #4a5568;
+    }
+    .info-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-left: 4px solid var(--accent-color);
+    }
+    .info-card h4 {
+        color: var(--primary-color);
+        margin-bottom: 20px;
+    }
+    .info-list {
+        list-style: none;
+        padding: 0;
+    }
+    .info-list li {
+        padding: 10px 0;
+        padding-left: 30px;
+        position: relative;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .info-list li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        top: 10px;
+        color: var(--accent-color);
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    .btn-order-large {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 15px 40px;
+        font-size: 1.2em;
+        font-weight: 700;
+        transition: var(--transition);
+        width: 100%;
+    }
+    .btn-order-large:hover {
+        background: #e05c2a;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(255,107,53,0.4);
+    }
+    .btn-order-large.added {
+        background: #22c55e;
+    }
+    .similar-services {
+        margin-top: 60px;
+        padding-top: 40px;
+        border-top: 2px solid #e2e8f0;
+    }
+    .similar-card {
+        transition: var(--transition);
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .similar-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .similar-card img {
+        height: 180px;
+        object-fit: cover;
+        width: 100%;
+    }
+    .toast-added {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #22c55e;
+        color: white;
+        padding: 12px 22px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95em;
+        box-shadow: 0 4px 15px rgba(34,197,94,0.4);
+        z-index: 2000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .toast-added.show {
+        opacity: 1;
+    }
+    @media (max-width: 768px) {
+        .service-detail-header h1 {
+            font-size: 1.8em;
+        }
+        .service-detail-header .price-large {
+            font-size: 1.5em;
+        }
+        .service-description {
+            font-size: 1em;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-5">
+    <!-- Уведомление -->
+    <div class="toast-added" id="toastAdded">✅ Услуга добавлена в корзину!</div>
+
+    <!-- Hero секция услуги -->
+    <div class="service-detail-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1>{{ service.title }}</h1>
+                    <div class="price-large">
+                        {{ service.price }}
+                    </div>
+                    <button class="btn-order-large" id="addToCartBtn" data-service-name="{{ service.title }}" data-service-price="{{ service.price }}">
+                        🛒 Добавить в корзину
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Изображение -->
+                <img src="{% static 'img/' %}{{ service.image }}" alt="{{ service.title }}" class="service-image-detail">
+                
+                <!-- Описание -->
+                <div class="service-description">
+                    <h3 class="mb-4">Описание услуги</h3>
+                    <p>{{ service.description }}</p>
+                    
+                    <h4 class="mt-4 mb-3">Что входит в стоимость:</h4>
+                    <ul class="info-list">
+                        {% for item in service.includes %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <h4 class="mt-4 mb-3">Этапы работ:</h4>
+                    <ul class="info-list">
+                        {% for step in service.steps %}
+                        <li>{{ step }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- Информационная карточка -->
+                <div class="info-card">
+                    <h4><i class="fas fa-clock me-2"></i>Сроки выполнения</h4>
+                    <p class="mb-0">{{ service.timeline }}</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4><i class="fas fa-check-circle me-2"></i>Гарантия</h4>
+                    <p class="mb-0">{{ service.warranty }}</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4><i class="fas fa-phone-alt me-2"></i>Нужна консультация?</h4>
+                    <p class="mb-3">Оставьте заявку, и наш специалист свяжется с вами в течение 15 минут.</p>
+                    <a href="{% url 'kontakty:kontakty' %}" class="btn btn-outline-primary w-100">Получить консультацию</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Похожие услуги -->
+    <div class="container similar-services">
+        <h3 class="text-center mb-5">Похожие услуги</h3>
+        <div class="row g-4">
+            {% for similar in similar_services %}
+            <div class="col-md-4">
+                <div class="card similar-card">
+                    <img src="{% static 'img/' %}{{ similar.image }}" alt="{{ similar.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ similar.title }}</h5>
+                        <p class="card-text text-muted small">{{ similar.description|truncatewords:10 }}</p>
+                        <div class="fw-bold text-primary mb-3">{{ similar.price }}</div>
+                        <a href="{% url 'uslugi:uslugi_detail' similar.pk %}" class="btn btn-sm btn-outline-primary w-100">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ── Корзина ───────────────────────────────────────────
+    function getCart() {
+        return JSON.parse(localStorage.getItem('nd_cart') || '[]');
+    }
+    function saveCart(cart) {
+        localStorage.setItem('nd_cart', JSON.stringify(cart));
+    }
+    function updateCartUI() {
+        const count = getCart().length;
+        const badge = document.getElementById('cartBadgeMenu');
+        if (badge) badge.textContent = count;
+    }
+    
+    function addToCart(name, price) {
+        const cart = getCart();
+        if (!cart.find(item => item.name === name)) {
+            cart.push({ name, price, id: Date.now() });
+            saveCart(cart);
+        }
+        // Показываем уведомление
+        const toast = document.getElementById('toastAdded');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+        // Обновляем счётчики
+        updateCartUI();
+        // Меняем кнопку
+        const btn = document.getElementById('addToCartBtn');
+        if (btn) {
+            btn.textContent = '✅ Добавлено в корзину';
+            btn.classList.add('added');
+        }
+    }
+    
+    // Проверяем, добавлена ли услуга в корзину
+    function checkIfAdded() {
+        const cart = getCart();
+        const serviceName = document.getElementById('addToCartBtn')?.getAttribute('data-service-name');
+        if (serviceName && cart.find(item => item.name === serviceName)) {
+            const btn = document.getElementById('addToCartBtn');
+            if (btn) {
+                btn.textContent = '✅ Добавлено в корзину';
+                btn.classList.add('added');
+            }
+        }
+    }
+    
+    // Обработчик кнопки добавления
+    const addBtn = document.getElementById('addToCartBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            const name = this.getAttribute('data-service-name');
+            const price = this.getAttribute('data-service-price');
+            addToCart(name, price);
+        });
+    }
+    
+    updateCartUI();
+    checkIfAdded();
+</script>
+{% endblock %}

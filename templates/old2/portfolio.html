@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Портфолио - Надёжный дом</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #007bff;
+            --accent-color: #ff6b35;
+            --transition: all 0.3s ease;
+        }
+        /* Боковое меню */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #0d1f3d 100%);
+            color: white;
+            z-index: 1050;
+            transition: var(--transition);
+            box-shadow: 5px 0 25px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar-header {
+            padding: 30px 25px;
+            text-align: center;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .logo-subtitle {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+        .sidebar-menu li {
+            margin: 5px 15px;
+        }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .sidebar-menu a.active {
+            background: var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(0,123,255,0.4);
+        }
+        .sidebar-menu a i {
+            font-size: 1.3em;
+            margin-right: 15px;
+        }
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1040;
+            display: none;
+        }
+        .overlay.active {
+            display: block;
+        }
+        /* Кнопка меню */
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1045;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.3em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: var(--transition);
+        }
+        .menu-toggle:hover {
+            background: var(--accent-color);
+            transform: scale(1.1);
+        }
+        /* Section Title */
+        .section-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--accent-color);
+            margin: 15px auto;
+            border-radius: 2px;
+        }
+        /* Portfolio Filters */
+        .portfolio-filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 12px 25px;
+            background: white;
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+        /* Portfolio Card */
+        .portfolio-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: var(--transition);
+            cursor: pointer;
+            height: 100%;
+        }
+        .portfolio-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        .portfolio-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            position: relative;
+        }
+        .portfolio-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            overflow: auto;
+        }
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            margin: auto;
+            padding: 0;
+            width: 90%;
+            max-width: 900px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 2em;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        .modal-close:hover {
+            background: var(--accent-color);
+            transform: rotate(90deg);
+        }
+        .modal-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+        }
+        .modal-body {
+            padding: 30px;
+        }
+        /* Back to Top */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5em;
+            box-shadow: 0 4px 20px rgba(0, 123, 255, 0.3);
+            z-index: 999;
+            transition: var(--transition);
+            opacity: 0;
+            visibility: hidden;
+        }
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .back-to-top:hover {
+            background: var(--accent-color);
+            transform: translateY(-5px) scale(1.1);
+        }
+        /* Footer */
+        footer {
+            background: var(--primary-color);
+            color: white;
+            padding: 30px 0;
+        }
+        .social-link {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .social-link:hover {
+            transform: scale(1.2);
+        }
+        .social-link img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        @media (max-width: 768px) {
+            .portfolio-filters {
+                flex-direction: column;
+                align-items: center;
+            }
+            .filter-btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    
+        /* Счётчик корзины в меню */
+        .cart-badge {
+            background: var(--accent-color);
+            color: white; border-radius: 50%;
+            width: 22px; height: 22px;
+            font-size: 0.75em; font-weight: bold;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковое меню -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">🏠 Надёжный дом</div>
+            <div class="logo-subtitle">Строим для жизни</div>
+        </div>
+<ul class="sidebar-menu">
+    <li><a href="/" ><i class="fas fa-home"></i> Главная</a></li>
+    <li><a href="/uslugi/" ><i class="fas fa-tools"></i> Услуги</a></li>
+    <li><a href="/portfolio/" class="active"><i class="fas fa-folder"></i> Портфолио</a></li>
+    <li><a href="/prices/" ><i class="fas fa-money-bill-wave"></i> Цены (Прайс)</a></li>
+    <li><a href="/kalkulyator/" ><i class="fas fa-calculator"></i> Конструктор проекта</a></li>
+    <li><a href="/cart/" ><i class="fas fa-shopping-cart"></i> Корзина <span class="cart-badge" id="cartBadgeMenu">0</span></a></li>
+    <li><a href="/cabinet/" ><i class="fas fa-user"></i> Личный кабинет</a></li>
+    <li><a href="/reviews/" ><i class="fas fa-comments"></i> Отзывы</a></li>
+    <li><a href="/kontakty/" ><i class="fas fa-phone"></i> Контакты</a></li>
+</ul>
+    </div>
+    <div class="overlay" id="overlay"></div>
+    <button class="menu-toggle" id="menuToggle">☰</button>
+
+    <!-- Основной контент -->
+    <div class="container-fluid px-3 px-md-5" style="margin-top: 10px;">
+        <h1 class="section-title text-center w-100">Портфолио выполненных проектов</h1>
+
+        <div class="card border-0 shadow mb-5">
+            <div class="card-body p-4">
+                <div class="portfolio-filters">
+                    <button class="filter-btn active" data-filter="all">Все проекты</button>
+                    <button class="filter-btn" data-filter="house">Дома и коттеджи</button>
+                    <button class="filter-btn" data-filter="repair">Ремонт и отделка</button>
+                </div>
+
+                <div class="row g-4 portfolio-grid">
+                    <div class="col-md-6 col-lg-4 portfolio-card" data-category="house" data-details='{"title": "Д.П. Кратово", "image": "img/dom1.jpg", "area": "180 м²", "type": "Двухэтажный дом", "term": "5 месяцев", "year": "2024", "description": "Современный дом из газобетона с кирпичной облицовкой. Панорамные окна, гараж на 2 машины. Включает полную внутреннюю отделку."}'>
+                        <div style="position: relative;">
+                            <img src="{% static 'img/dom1.jpg' %}" alt="Д.П. Кратово" class="portfolio-image">
+                            <div class="portfolio-badge">Газоблок</div>
+                        </div>
+                        <div class="p-4">
+                            <h5 class="fw-bold">Д.П. Кратово</h5>
+                            <div class="text-muted small mb-2">
+                                <span>📐 180 м²</span> • <span>⏱️ 5 мес.</span>
+                            </div>
+                            <p class="text-muted small">Современный дом из газобетона с кирпичной облицовкой...</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 portfolio-card" data-category="house" data-details='{"title": "КП Палисад 2", "image": "img/dom2.jpg", "area": "220 м²", "type": "Одноэтажный коттедж", "term": "7 месяцев", "year": "2023", "description": "Классический кирпичный дом с мансардой. Сложная кровля, ландшафтный дизайн. Работы под ключ."}'>
+                        <div style="position: relative;">
+                            <img src="{% static 'img/dom2.jpg' %}" alt="КП Палисад 2" class="portfolio-image">
+                            <div class="portfolio-badge">Кирпич</div>
+                        </div>
+                        <div class="p-4">
+                            <h5 class="fw-bold">КП Палисад 2</h5>
+                            <div class="text-muted small mb-2">
+                                <span>📐 220 м²</span> • <span>⏱️ 7 мес.</span>
+                            </div>
+                            <p class="text-muted small">Классический кирпичный дом с мансардой...</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 portfolio-card" data-category="repair" data-details='{"title": "Квартира на пр-те Ленина", "image": "img/news3.jpg", "area": "65 м²", "type": "Капитальный ремонт", "term": "2 месяца", "year": "2024", "description": "Полный капитальный ремонт квартиры по индивидуальному дизайн-проекту. Замена всех коммуникаций, финишная отделка."}'>
+                        <div style="position: relative;">
+                            <img src="{% static 'img/news3.jpg' %}" alt="Квартира на пр-те Ленина" class="portfolio-image">
+                            <div class="portfolio-badge">Отделка</div>
+                        </div>
+                        <div class="p-4">
+                            <h5 class="fw-bold">Квартира на пр-те Ленина</h5>
+                            <div class="text-muted small mb-2">
+                                <span>📐 65 м²</span> • <span>⏱️ 2 мес.</span>
+                            </div>
+                            <p class="text-muted small">Полный капитальный ремонт квартиры...</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 portfolio-card" data-category="house" data-details='{"title": "Д.П. Светлогорье", "image": "img/dom4.jpg", "area": "140 м²", "type": "Каркасный дом", "term": "3 месяца", "year": "2024", "description": "Энергоэффективный каркасный дом в стиле Barnhouse. Отделка фасада деревом и профнастилом. Построен с соблюдением всех теплоизоляционных норм."}'>
+                        <div style="position: relative;">
+                            <img src="{% static 'img/dom4.jpg' %}" alt="Д.П. Светлогорье" class="portfolio-image">
+                            <div class="portfolio-badge">Каркас</div>
+                        </div>
+                        <div class="p-4">
+                            <h5 class="fw-bold">Д.П. Светлогорье</h5>
+                            <div class="text-muted small mb-2">
+                                <span>📐 140 м²</span> • <span>⏱️ 3 мес.</span>
+                            </div>
+                            <p class="text-muted small">Энергоэффективный каркасный дом...</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 portfolio-card" data-category="repair" data-details='{"title": "Офис IT-компании", "image": "img/repair2.jpg", "area": "400 м²", "type": "Ремонт коммерческой недвижимости", "term": "4 месяца", "year": "2023", "description": "Комплексный ремонт офиса класса А. Создание open-space, переговорных и кухни. Включает разводку СКС и монтаж систем вентиляции."}'>
+                        <div style="position: relative;">
+                            <img src="{% static 'img/repair2.jpg' %}" alt="Офис IT-компании" class="portfolio-image">
+                            <div class="portfolio-badge">Коммерция</div>
+                        </div>
+                        <div class="p-4">
+                            <h5 class="fw-bold">Офис IT-компании</h5>
+                            <div class="text-muted small mb-2">
+                                <span>📐 400 м²</span> • <span>⏱️ 4 мес.</span>
+                            </div>
+                            <p class="text-muted small">Ремонт офиса класса А...</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 portfolio-card" data-category="house" data-details='{"title": "КП Южный", "image": "img/dom5.jpg", "area": "110 м²", "type": "Одноэтажный дом", "term": "6 месяцев", "year": "2023", "description": "Одноэтажный дом из керамзитобетонных блоков с утеплением и штукатурным фасадом. Эффективная планировка и низкие эксплуатационные расходы."}'>
+                        <div style="position: relative;">
+                            <img src="{% static 'img/dom5.jpg' %}" alt="КП Южный" class="portfolio-image">
+                            <div class="portfolio-badge">Блоки</div>
+                        </div>
+                        <div class="p-4">
+                            <h5 class="fw-bold">КП Южный</h5>
+                            <div class="text-muted small mb-2">
+                                <span>📐 110 м²</span> • <span>⏱️ 6 мес.</span>
+                            </div>
+                            <p class="text-muted small">Уютный одноэтажный дом из блоков...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <img src="" alt="" class="modal-image" id="modalImage">
+            <div class="modal-body">
+                <h3 id="modalTitle" class="text-primary"></h3>
+                <div class="portfolio-details" id="modalDetails"></div>
+                <p id="modalDescription" class="mt-3"></p>
+                <a href="/kontakty/" class="btn btn-primary w-100 mt-3">Запросить похожий проект</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка "Наверх" -->
+    <button class="back-to-top" id="backToTop">↑</button>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <div class="d-flex justify-content-center gap-3 mb-3">
+                <a href="https://vk.com" class="social-link">
+                    <img src="{% static 'img/vk.jpg' %}" alt="ВКонтакте">
+                </a>
+                <a href="https://ok.ru" class="social-link">
+                    <img src="{% static 'img/ok.jpg' %}" alt="Одноклассники">
+                </a>
+                <a href="https://t.me" class="social-link">
+                    <img src="{% static 'img/tg.jpg' %}" alt="Telegram">
+                </a>
+            </div>
+            <p class="mb-2">🏗️ Надёжный дом — Строим для жизни</p>
+            <p class="text-white-50">© 2025 Все права защищены</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Управление меню
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    const overlay = document.getElementById('overlay');
+    function toggleMenu() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+    menuToggle.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                toggleMenu();
+            }
+        });
+    });
+
+    // Кнопка "Наверх"
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            backToTop.classList.add('show');
+        } else {
+            backToTop.classList.remove('show');
+        }
+    });
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Портфолио: фильтрация и модалка
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const portfolioCards = document.querySelectorAll('.portfolio-card');
+    const modal = document.getElementById('projectModal');
+    const modalClose = document.getElementById('modalClose');
+
+    // Фильтрация
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.getAttribute('data-filter');
+            portfolioCards.forEach(card => {
+                const category = card.getAttribute('data-category');
+                card.style.display = (filter === 'all' || category === filter) ? 'block' : 'none';
+            });
+        });
+    });
+
+    // расчет ценника от 24 года 1 января
+    function getPriceMultiplier() {
+        const currentDate = new Date();
+        const baseDate = new Date('2024-01-01');
+        const monthsDiff = (currentDate.getFullYear() - baseDate.getFullYear()) * 12 + 
+                          (currentDate.getMonth() - baseDate.getMonth());
+        const inflationRate = 0.005;
+        return 1 + (monthsDiff * inflationRate);
+    }
+
+    const basePrices = {
+        foundation: { name: 'Фундамент', pricePerM2: 3500 },
+        walls: {
+            gazoblock: { name: 'Газоблок', pricePerM2: 4200 },
+            kirpich: { name: 'Кирпич', pricePerM2: 6500 },
+            karkas: { name: 'Каркас', pricePerM2: 3800 },
+            blocks: { name: 'Керамзитоблоки', pricePerM2: 4000 }
+        },
+        roof: { name: 'Кровля', pricePerM2: 2800 },
+        windows: { name: 'Окна', pricePerM2: 1200 },
+        interior: { name: 'Внутренняя отделка', pricePerM2: 5500 },
+        exterior: { name: 'Наружная отделка', pricePerM2: 2200 },
+        engineering: { name: 'Инженерные системы', pricePerM2: 3000 }
+    };
+
+    const projectMaterials = {
+        'Д.П. Кратово': { wallType: 'gazoblock', hasGarage: true, garageArea: 40 },
+        'КП Палисад 2': { wallType: 'kirpich', hasGarage: false, complexRoof: true },
+        'Квартира на пр-те Ленина': { isApartment: true, fullRenovation: true },
+        'Д.П. Светлогорье': { wallType: 'karkas', hasGarage: false },
+        'Офис IT-компании': { isCommercial: true, hasVentilation: true },
+        'КП Южный': { wallType: 'blocks', hasGarage: false }
+    };
+
+    function calculateProjectCost(projectName, area) {
+        const multiplier = getPriceMultiplier();
+        const materials = projectMaterials[projectName];
+        const breakdown = {};
+        let total = 0;
+
+        if (materials.isApartment) {
+            breakdown['Демонтаж'] = Math.round(area * 800 * multiplier);
+            breakdown['Электрика'] = Math.round(area * 1500 * multiplier);
+            breakdown['Сантехника'] = Math.round(area * 1800 * multiplier);
+            breakdown['Стяжка пола'] = Math.round(area * 1200 * multiplier);
+            breakdown['Штукатурка стен'] = Math.round(area * 1400 * multiplier);
+            breakdown['Финишная отделка'] = Math.round(area * 5500 * multiplier);
+            breakdown['Двери и плинтусы'] = Math.round(area * 900 * multiplier);
+        } else if (materials.isCommercial) {
+            breakdown['Перепланировка'] = Math.round(area * 1200 * multiplier);
+            breakdown['Электромонтаж'] = Math.round(area * 2500 * multiplier);
+            breakdown['СКС и слаботочка'] = Math.round(area * 1800 * multiplier);
+            breakdown['Система вентиляции'] = Math.round(area * 3500 * multiplier);
+            breakdown['Подвесные потолки'] = Math.round(area * 1600 * multiplier);
+            breakdown['Напольное покрытие'] = Math.round(area * 2200 * multiplier);
+            breakdown['Отделка стен'] = Math.round(area * 2800 * multiplier);
+        } else {
+            const foundationArea = area * 1.2;
+            breakdown['Фундамент'] = Math.round(foundationArea * basePrices.foundation.pricePerM2 * multiplier);
+            
+            const wallMaterial = basePrices.walls[materials.wallType];
+            breakdown[wallMaterial.name + ' (стены)'] = Math.round(area * wallMaterial.pricePerM2 * multiplier);
+            
+            const roofMultiplier = materials.complexRoof ? 1.5 : 1;
+            breakdown['Кровля'] = Math.round(area * 1.3 * basePrices.roof.pricePerM2 * roofMultiplier * multiplier);
+            
+            breakdown['Окна и двери'] = Math.round(area * basePrices.windows.pricePerM2 * multiplier);
+            breakdown['Наружная отделка'] = Math.round(area * basePrices.exterior.pricePerM2 * multiplier);
+            breakdown['Внутренняя отделка'] = Math.round(area * basePrices.interior.pricePerM2 * multiplier);
+            breakdown['Инженерные системы'] = Math.round(area * basePrices.engineering.pricePerM2 * multiplier);
+            
+            if (materials.hasGarage) {
+                const garageArea = materials.garageArea || 30;
+                breakdown['Гараж'] = Math.round(garageArea * 15000 * multiplier);
+            }
+        }
+
+        for (let key in breakdown) total += breakdown[key];
+        return { breakdown, total, multiplier };
+    }
+
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+
+    // Обновлённая функция открытия модалки
+    function openModal(card) {
+        const details = JSON.parse(card.getAttribute('data-details'));
+        const area = parseInt(details.area);
+        const costData = calculateProjectCost(details.title, area);
+        
+        document.getElementById('modalTitle').textContent = details.title;
+        document.getElementById('modalImage').src = details.image;
+        document.getElementById('modalImage').alt = details.title;
+        document.getElementById('modalDescription').textContent = details.description;
+        
+        let priceTable = '<div class="mt-4 border-top pt-3">';
+        priceTable += '<h5 class="text-success mb-3">Смета проекта:</h5>';
+        priceTable += '<table class="table table-sm table-hover">';
+        
+        for (let item in costData.breakdown) {
+            priceTable += `
+                <tr>
+                    <td><strong>${item}</strong></td>
+                    <td class="text-end">${formatNumber(costData.breakdown[item])} ₽</td>
+                </tr>
+            `;
+        }
+        
+        priceTable += `
+            <tr class="table-primary">
+                <td><strong>ИТОГО:</strong></td>
+                <td class="text-end"><strong>${formatNumber(costData.total)} ₽</strong></td>
+            </tr>
+        `;
+        priceTable += '</table>';
+        
+        const currentDate = new Date();
+        const dateStr = currentDate.toLocaleDateString('ru-RU', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        priceTable += `<p class="text-muted small mt-2">
+            📅 Цены актуальны на ${dateStr}<br>
+            📊 Коэффициент инфляции: ${costData.multiplier.toFixed(3)}
+        </p>`;
+        priceTable += '</div>';
+        
+        document.getElementById('modalDetails').innerHTML = `
+            <span>📐 Площадь: ${details.area}</span><br>
+            <span>🏗️ Тип: ${details.type}</span><br>
+            <span>⏱️ Срок: ${details.term}</span><br>
+            <span>📅 Год: ${details.year}</span>
+            ${priceTable}
+        `;
+        
+        modal.classList.add('active');
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+    }
+
+    // Привязка событий
+    portfolioCards.forEach(card => {
+        card.addEventListener('click', () => openModal(card));
+    });
+
+    modalClose.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Обновление счётчика корзины в меню
+    (function() {
+        const cart = JSON.parse(localStorage.getItem('nd_cart') || '[]');
+        const badge = document.getElementById('cartBadgeMenu');
+        if (badge) badge.textContent = cart.length;
+    })();
+</script>
+</body>
+</html>
